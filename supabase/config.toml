@@ -1,0 +1,9 @@
+# Linked project: raflrreyawwexjerfqpc (Mumbai, ap-south-1).
+# https://raflrreyawwexjerfqpc.supabase.co
+project_id = "raflrreyawwexjerfqpc"
+
+[db]
+major_version = 15
+
+[db.seed]
+sql_paths = ["./seed.sql"]

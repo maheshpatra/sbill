@@ -1,0 +1,27 @@
+{
+  "name": "billflow",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Billflow: marketing site, tenant dashboard, and the Supabase/NestJS billing API.",
+  "workspaces": [
+    "api",
+    "web",
+    "dashboard",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @billflow/types -w @billflow/gst -w @billflow/upi -w @billflow/host-resolution -w @billflow/storefront && npm run build -w @billflow/api && npm run openapi -w @billflow/api && npm run generate -w @billflow/api-client && npm run build -w @billflow/api-client && npm run build -w @billflow/web && npm run build -w @billflow/dashboard",
+    "lint": "npm run lint -w @billflow/api && npm run lint -w @billflow/web && npm run lint -w @billflow/dashboard",
+    "test": "npm run test -w @billflow/api && npm run test -w @billflow/web && npm run test -w @billflow/dashboard",
+    "test:rls": "bash supabase/tests/run.sh",
+    "dev": "concurrently -n api,web,dash -c cyan,green,magenta \"npm run start:dev -w @billflow/api\" \"npm run dev -w @billflow/web\" \"npm run dev -w @billflow/dashboard\"",
+    "start": "npm run dev",
+    "openapi": "npm run openapi -w @billflow/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

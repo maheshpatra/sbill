@@ -1,0 +1,5273 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "HealthController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "status": "ok",
+                    "service": "billflow-api",
+                    "timestamp": "2026-11-20T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Profile, memberships, and JWT tenant claims (hints only)."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      },
+      "patch": {
+        "operationId": "AuthController_updateMe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "MeController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      },
+      "patch": {
+        "operationId": "MeController_updateMe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/admin/plans": {
+      "get": {
+        "operationId": "AdminController_plans",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/plans/{code}": {
+      "patch": {
+        "operationId": "AdminController_updatePlan",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanPatchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/plans/{code}/features": {
+      "get": {
+        "operationId": "AdminController_features",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      },
+      "put": {
+        "operationId": "AdminController_replaceFeatures",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeaturesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/templates": {
+      "get": {
+        "operationId": "AdminController_templates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/templates/{key}": {
+      "put": {
+        "operationId": "AdminController_template",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplatePatchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/tenants": {
+      "get": {
+        "operationId": "AdminController_tenants",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/tenants/{id}/suspend": {
+      "post": {
+        "operationId": "AdminController_suspend",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/tenants/{id}/plan": {
+      "post": {
+        "operationId": "AdminController_plan",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/settings": {
+      "get": {
+        "operationId": "AdminController_settings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminController_updateSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/uploads/presign": {
+      "post": {
+        "operationId": "StorageController_presign",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresignDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
+    "/tenants": {
+      "post": {
+        "operationId": "TenantsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTenantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RPC create_tenant result: { id, name, slug, plan, status, currency, role, membership_id, created_at }."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      },
+      "get": {
+        "operationId": "TenantsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      }
+    },
+    "/tenants/current": {
+      "get": {
+        "operationId": "TenantsController_current",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      },
+      "patch": {
+        "operationId": "TenantsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTenantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      }
+    },
+    "/tenants/switch": {
+      "post": {
+        "operationId": "TenantsController_switchTenant",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwitchTenantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      }
+    },
+    "/tenants/members": {
+      "get": {
+        "operationId": "TenantsController_members",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      },
+      "post": {
+        "operationId": "TenantsController_invite",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteMemberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      }
+    },
+    "/tenants/members/{id}": {
+      "patch": {
+        "operationId": "TenantsController_updateMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      },
+      "delete": {
+        "operationId": "TenantsController_removeMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      }
+    },
+    "/entitlements": {
+      "get": {
+        "operationId": "EntitlementsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Active plan, feature flags, and usage. Feature keys: basic_invoices, public_site, gst_invoices, product_catalog, whatsapp_click_to_chat, whatsapp_sharing, upi_qr, cash_payments, auto_reminders, online_payments, pos, multi_user_roles, stock_tracking, reporting_dashboard, custom_templates, custom_domains, custom_domain, webhooks, audit_log, api_access, remove_branding, priority_support, invoices_per_month, customers, members, max_users, max_invoices_per_month, max_customers, max_products, max_custom_domains. Numeric limits are null when unlimited."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "entitlements"
+        ]
+      }
+    },
+    "/billing/plans": {
+      "get": {
+        "operationId": "BillingController_plans",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Public plan catalog. Each plan includes price_monthly, price_yearly (INR), and features (the entitlement keys)."
+          }
+        },
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/billing/subscription": {
+      "get": {
+        "operationId": "BillingController_subscription",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "billing"
+        ]
+      },
+      "post": {
+        "operationId": "BillingController_subscribe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscribeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/billing/invoices": {
+      "get": {
+        "operationId": "BillingController_invoices",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/billing/checkout": {
+      "post": {
+        "operationId": "BillingController_checkout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscribeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/billing/subscription/cancel": {
+      "post": {
+        "operationId": "BillingController_cancel",
+        "parameters": [],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/public/billing/razorpay": {
+      "post": {
+        "operationId": "BillingWebhookController_razorpay",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "BillingWebhook"
+        ]
+      }
+    },
+    "/customers": {
+      "get": {
+        "operationId": "CustomersController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Matches name, email, or company.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customers"
+        ]
+      },
+      "post": {
+        "operationId": "CustomersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/customers/{id}": {
+      "get": {
+        "operationId": "CustomersController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customers"
+        ]
+      },
+      "patch": {
+        "operationId": "CustomersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customers"
+        ]
+      },
+      "delete": {
+        "operationId": "CustomersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/invoices": {
+      "get": {
+        "operationId": "InvoicesController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "sent",
+                "paid",
+                "overdue",
+                "void"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Invoice number search.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customer_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices"
+        ]
+      },
+      "post": {
+        "operationId": "InvoicesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvoiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft invoice. amount, tax, and total are computed on the server from the lines."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices"
+        ]
+      }
+    },
+    "/invoices/{id}": {
+      "get": {
+        "operationId": "InvoicesController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices"
+        ]
+      },
+      "patch": {
+        "operationId": "InvoicesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInvoiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices"
+        ]
+      }
+    },
+    "/invoices/{id}/send": {
+      "post": {
+        "operationId": "InvoicesController_send",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices"
+        ]
+      }
+    },
+    "/invoices/{id}/void": {
+      "post": {
+        "operationId": "InvoicesController_void",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices"
+        ]
+      }
+    },
+    "/invoices/{id}/mark-paid": {
+      "post": {
+        "operationId": "InvoicesController_markPaid",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkPaidDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inserts a succeeded payment and returns the payment plus the updated invoice."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices"
+        ]
+      }
+    },
+    "/invoices/{id}/upi": {
+      "get": {
+        "operationId": "InvoicesController_upi",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices"
+        ]
+      },
+      "post": {
+        "operationId": "InvoicesController_collectUpi",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectUpiDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices"
+        ]
+      }
+    },
+    "/invoice-templates": {
+      "get": {
+        "operationId": "InvoiceTemplatesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "invoices",
+          "invoices"
+        ]
+      }
+    },
+    "/payments": {
+      "get": {
+        "operationId": "PaymentsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "invoice_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "succeeded",
+                "failed",
+                "refunded"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      },
+      "post": {
+        "operationId": "PaymentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/{id}": {
+      "get": {
+        "operationId": "PaymentsController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/{id}/confirm": {
+      "post": {
+        "operationId": "PaymentsController_confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmUpiDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/{id}/void": {
+      "post": {
+        "operationId": "PaymentsController_voidPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/{id}/razorpay/verify": {
+      "post": {
+        "operationId": "PaymentsController_verify",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RazorpayVerifyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/{id}/refund": {
+      "post": {
+        "operationId": "PaymentsController_refund",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/invoices/{id}/razorpay": {
+      "post": {
+        "operationId": "InvoiceRazorpayController_collect",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RazorpayCollectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/settings/razorpay": {
+      "get": {
+        "operationId": "RazorpaySettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      },
+      "put": {
+        "operationId": "RazorpaySettingsController_save",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RazorpaySettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/settings/razorpay/test": {
+      "post": {
+        "operationId": "RazorpaySettingsController_test",
+        "parameters": [],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/public/payments/razorpay/{tenantId}": {
+      "post": {
+        "operationId": "TenantRazorpayWebhookController_webhook",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "TenantRazorpayWebhook"
+        ]
+      }
+    },
+    "/webhooks": {
+      "get": {
+        "operationId": "WebhooksController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "webhooks"
+        ]
+      },
+      "post": {
+        "operationId": "WebhooksController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/webhooks/{id}": {
+      "patch": {
+        "operationId": "WebhooksController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "WebhooksController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/webhooks/{id}/deliveries": {
+      "get": {
+        "operationId": "WebhooksController_deliveries",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/tax-rates": {
+      "get": {
+        "operationId": "TaxRatesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tax-rates"
+        ]
+      },
+      "post": {
+        "operationId": "TaxRatesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxRateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tax-rates"
+        ]
+      }
+    },
+    "/tax-rates/{id}": {
+      "patch": {
+        "operationId": "TaxRatesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxRateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tax-rates"
+        ]
+      }
+    },
+    "/sites/resolve": {
+      "get": {
+        "operationId": "SitesController_resolve",
+        "parameters": [
+          {
+            "name": "host",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "acme.billflow.app",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Host classification plus a published site, or site: null. Uses get_site_by_host for tenant subdomains and custom domains."
+          }
+        },
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/sites/current": {
+      "get": {
+        "operationId": "SitesController_current",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "sites"
+        ]
+      },
+      "patch": {
+        "operationId": "SitesController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSiteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/website/templates": {
+      "get": {
+        "operationId": "WebsiteController_templates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      }
+    },
+    "/website": {
+      "get": {
+        "operationId": "WebsiteController_current",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      }
+    },
+    "/website/template": {
+      "post": {
+        "operationId": "WebsiteController_apply",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      }
+    },
+    "/website/draft": {
+      "put": {
+        "operationId": "WebsiteController_draft",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      }
+    },
+    "/website/publish": {
+      "post": {
+        "operationId": "WebsiteController_publish",
+        "parameters": [],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      }
+    },
+    "/website/subdomain": {
+      "put": {
+        "operationId": "WebsiteController_subdomain",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubdomainDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      }
+    },
+    "/website/domains": {
+      "get": {
+        "operationId": "WebsiteController_domains",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      },
+      "post": {
+        "operationId": "WebsiteController_addDomain",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DomainDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      }
+    },
+    "/website/domains/{id}/verify": {
+      "post": {
+        "operationId": "WebsiteController_verify",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      }
+    },
+    "/website/domains/{id}": {
+      "delete": {
+        "operationId": "WebsiteController_removeDomain",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "website"
+        ]
+      }
+    },
+    "/internal/cron/mark-overdue": {
+      "post": {
+        "operationId": "CronController_markOverdue",
+        "parameters": [
+          {
+            "name": "x-cron-secret",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Flips sent invoices past due_at to overdue. Returns { updated }."
+          }
+        },
+        "tags": [
+          "internal"
+        ]
+      }
+    },
+    "/invoices/{id}/share": {
+      "post": {
+        "operationId": "CommerceController_share",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/invoices/{id}/share/revoke": {
+      "post": {
+        "operationId": "CommerceController_revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/public/invoices/{token}": {
+      "get": {
+        "operationId": "CommerceController_publicInvoice",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/invoices/{id}/pdf": {
+      "get": {
+        "operationId": "CommerceController_pdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/invoices/{id}/whatsapp": {
+      "post": {
+        "operationId": "CommerceController_whatsapp",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/invoices/{id}/credit-note": {
+      "post": {
+        "operationId": "CommerceController_credit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/invoices/{id}/einvoice": {
+      "post": {
+        "operationId": "CommerceController_einvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/gstin/validate": {
+      "post": {
+        "operationId": "CommerceController_gstin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GstinDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/reports/gstr1": {
+      "get": {
+        "operationId": "CommerceController_gstr1",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/public/whatsapp/webhook": {
+      "get": {
+        "operationId": "CommerceController_verifyWebhook",
+        "parameters": [
+          {
+            "name": "hub.mode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hub.verify_token",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hub.challenge",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "commerce"
+        ]
+      },
+      "post": {
+        "operationId": "CommerceController_webhook",
+        "parameters": [
+          {
+            "name": "x-webhook-secret",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/settings/whatsapp": {
+      "get": {
+        "operationId": "CommerceController_getWhatsapp",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      },
+      "put": {
+        "operationId": "CommerceController_saveWhatsapp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WhatsappDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/reminders/schedules": {
+      "get": {
+        "operationId": "CommerceController_schedules",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      },
+      "put": {
+        "operationId": "CommerceController_saveSchedules",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchedulesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/reminders/jobs": {
+      "get": {
+        "operationId": "CommerceController_jobs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/internal/cron/reminders": {
+      "post": {
+        "operationId": "CommerceController_runReminders",
+        "parameters": [
+          {
+            "name": "x-cron-secret",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/products": {
+      "get": {
+        "operationId": "CommerceController_products",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      },
+      "post": {
+        "operationId": "CommerceController_createProduct",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "operationId": "CommerceController_product",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      },
+      "put": {
+        "operationId": "CommerceController_updateProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/pos/settings": {
+      "get": {
+        "operationId": "CommerceController_posSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      },
+      "put": {
+        "operationId": "CommerceController_savePos",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PosSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/pos/checkout": {
+      "post": {
+        "operationId": "CommerceController_checkout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "commerce"
+        ]
+      }
+    },
+    "/settings/messaging": {
+      "get": {
+        "operationId": "MessagingSettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "operationId": "MessagingSettingsController_save",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessagingSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/sync/sales": {
+      "post": {
+        "operationId": "CounterController_sync",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncSalesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/pos/tiles": {
+      "get": {
+        "operationId": "CounterController_tiles",
+        "parameters": [
+          {
+            "name": "category_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/purchases": {
+      "get": {
+        "operationId": "CounterController_purchases",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      },
+      "post": {
+        "operationId": "CounterController_savePurchase",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/product-categories": {
+      "get": {
+        "operationId": "CounterController_categories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      },
+      "post": {
+        "operationId": "CounterController_createCategory",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/product-categories/{id}": {
+      "put": {
+        "operationId": "CounterController_updateCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      },
+      "delete": {
+        "operationId": "CounterController_deleteCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/dashboard/morning": {
+      "get": {
+        "operationId": "CounterController_morning",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/invoices/{id}/events": {
+      "get": {
+        "operationId": "CounterController_events",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/reminders/plan": {
+      "get": {
+        "operationId": "CounterController_plan",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      },
+      "put": {
+        "operationId": "CounterController_savePlan",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderPlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/customers/{id}/ledger-link": {
+      "post": {
+        "operationId": "CounterController_createLink",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/customers/{id}/ledger-link/revoke": {
+      "post": {
+        "operationId": "CounterController_revokeLink",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/public/ledger/{token}": {
+      "get": {
+        "operationId": "CounterController_ledger",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/public/ledger/{token}/upi": {
+      "post": {
+        "operationId": "CounterController_ledgerUpi",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/voice/parse": {
+      "post": {
+        "operationId": "CounterController_voice",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/purchases/parse": {
+      "post": {
+        "operationId": "CounterController_bill",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "counter"
+        ]
+      }
+    },
+    "/i18n/labels": {
+      "get": {
+        "operationId": "CounterController_i18n",
+        "parameters": [
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "counter"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Billflow API",
+    "description": "Multi-tenant billing API. Send the Supabase access token as a Bearer token. Row level security isolates tenants. JSON fields are snake_case.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [
+    {
+      "url": "http://127.0.0.1:4317",
+      "description": "Local"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "ProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "avatar_url": {
+            "type": "string"
+          }
+        }
+      },
+      "PlanPatchDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price_monthly": {
+            "type": "number"
+          },
+          "price_yearly": {
+            "type": "number"
+          },
+          "price_monthly_paise": {
+            "type": "number"
+          },
+          "price_yearly_paise": {
+            "type": "number"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "is_public": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FeatureFlagDto": {
+        "type": "object",
+        "properties": {
+          "feature_key": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "limit_value": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "feature_key",
+          "enabled"
+        ]
+      },
+      "FeaturesDto": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureFlagDto"
+            }
+          }
+        },
+        "required": [
+          "features"
+        ]
+      },
+      "TemplatePatchDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "required_feature": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "suspended"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "PlanCodeDto": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan"
+        ]
+      },
+      "CloudinarySettingsDto": {
+        "type": "object",
+        "properties": {
+          "cloud_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "api_key": {
+            "type": "string",
+            "nullable": true
+          },
+          "api_secret": {
+            "type": "string",
+            "nullable": true,
+            "description": "Write-only. Empty keeps the current secret. Null clears it."
+          }
+        }
+      },
+      "SettingsDto": {
+        "type": "object",
+        "properties": {
+          "app_domain": {
+            "type": "string"
+          },
+          "dashboard_host": {
+            "type": "string"
+          },
+          "storage_provider": {
+            "type": "string",
+            "enum": [
+              "supabase",
+              "cloudinary",
+              "r2"
+            ]
+          },
+          "cloudinary": {
+            "$ref": "#/components/schemas/CloudinarySettingsDto"
+          }
+        }
+      },
+      "PresignDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "logo",
+              "avatar",
+              "bill_photo",
+              "product",
+              "site"
+            ]
+          },
+          "content_type": {
+            "type": "string",
+            "example": "image/png"
+          },
+          "size": {
+            "type": "number",
+            "example": 120000
+          }
+        },
+        "required": [
+          "kind",
+          "content_type",
+          "size"
+        ]
+      },
+      "CreateTenantDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Acme Traders"
+          },
+          "slug": {
+            "type": "string",
+            "example": "acme",
+            "description": "Lowercase kebab-case. Becomes the public site subdomain."
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "UpdateTenantDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "legal_name": {
+            "type": "string"
+          },
+          "gstin": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "state_code": {
+            "type": "string"
+          },
+          "pincode": {
+            "type": "string"
+          },
+          "upi_vpa": {
+            "type": "object",
+            "example": "acme@okhdfcbank"
+          },
+          "upi_payee_name": {
+            "type": "string",
+            "example": "Acme Traders"
+          },
+          "logo_url": {
+            "type": "string"
+          },
+          "default_template": {
+            "type": "string",
+            "example": "classic"
+          },
+          "invoice_prefix": {
+            "type": "string",
+            "example": "INV"
+          }
+        }
+      },
+      "SwitchTenantDto": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id"
+        ]
+      },
+      "InviteMemberDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "billing@acmetraders.example"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "billing",
+              "member"
+            ]
+          }
+        },
+        "required": [
+          "email",
+          "role"
+        ]
+      },
+      "UpdateMemberDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "billing",
+              "member",
+              "owner"
+            ]
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "SubscribeDto": {
+        "type": "object",
+        "properties": {
+          "plan_code": {
+            "type": "string",
+            "example": "growth",
+            "description": "plans.code"
+          },
+          "billing_cycle": {
+            "type": "string",
+            "enum": [
+              "monthly",
+              "yearly"
+            ]
+          }
+        },
+        "required": [
+          "plan_code",
+          "billing_cycle"
+        ]
+      },
+      "AddressDto": {
+        "type": "object",
+        "properties": {
+          "line1": {
+            "type": "string"
+          },
+          "line2": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "state_code": {
+            "type": "string"
+          },
+          "pincode": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "default": "IN"
+          }
+        }
+      },
+      "CustomerBodyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Mehta & Co"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "gstin": {
+            "type": "string"
+          },
+          "billing_address": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "shipping_address": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "gstin": {
+            "type": "string"
+          },
+          "billing_address": {
+            "type": "object"
+          },
+          "shipping_address": {
+            "type": "object"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceItemInputDto": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "example": "Monthly bookkeeping retainer"
+          },
+          "quantity": {
+            "type": "number",
+            "example": 1
+          },
+          "unit_price": {
+            "type": "number",
+            "example": 10000,
+            "description": "Tax-exclusive unit price in the invoice currency."
+          },
+          "tax_rate_id": {
+            "type": "string",
+            "description": "Catalog tax rate. When set, the stored percent comes from tax_rates."
+          },
+          "tax_rate": {
+            "type": "number",
+            "example": 18,
+            "description": "GST percent used when tax_rate_id is omitted."
+          },
+          "hsn_sac": {
+            "type": "string",
+            "example": "9982"
+          }
+        },
+        "required": [
+          "description",
+          "quantity",
+          "unit_price"
+        ]
+      },
+      "CreateInvoiceDto": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string"
+          },
+          "supply_type": {
+            "type": "string",
+            "enum": [
+              "intra",
+              "inter"
+            ],
+            "default": "intra"
+          },
+          "discount": {
+            "type": "number",
+            "description": "Tax-exclusive discount in rupees. Totals are computed on the server."
+          },
+          "notes": {
+            "type": "string"
+          },
+          "terms": {
+            "type": "string"
+          },
+          "place_of_supply": {
+            "type": "string",
+            "example": "27",
+            "description": "GST place-of-supply state code."
+          },
+          "due_at": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "default": "INR"
+          },
+          "template_key": {
+            "type": "string",
+            "example": "classic"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceItemInputDto"
+            }
+          }
+        },
+        "required": [
+          "customer_id",
+          "items"
+        ]
+      },
+      "UpdateInvoiceDto": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "string"
+          },
+          "terms": {
+            "type": "string"
+          },
+          "due_at": {
+            "type": "string"
+          },
+          "discount": {
+            "type": "number"
+          },
+          "place_of_supply": {
+            "type": "string"
+          },
+          "template_key": {
+            "type": "string",
+            "example": "classic"
+          }
+        }
+      },
+      "MarkPaidDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 1180
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "upi",
+              "upi_qr",
+              "bank_transfer",
+              "cash",
+              "card",
+              "cheque",
+              "other"
+            ]
+          },
+          "transaction_ref": {
+            "type": "string",
+            "example": "UPI-ACME-INV-0001"
+          },
+          "paid_at": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "amount_tendered": {
+            "type": "number",
+            "description": "Cash handed over by the customer."
+          },
+          "change_given": {
+            "type": "number",
+            "description": "Cash handed back. Omit to use tendered minus the amount due."
+          }
+        },
+        "required": [
+          "amount",
+          "method"
+        ]
+      },
+      "CollectUpiDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "Amount to collect. Defaults to the outstanding balance."
+          }
+        }
+      },
+      "CreatePaymentDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 1180
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "upi",
+              "upi_qr",
+              "bank_transfer",
+              "cash",
+              "card",
+              "cheque",
+              "other"
+            ]
+          },
+          "transaction_ref": {
+            "type": "string",
+            "example": "UPI-ACME-INV-0001"
+          },
+          "paid_at": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "amount_tendered": {
+            "type": "number",
+            "description": "Cash handed over by the customer."
+          },
+          "change_given": {
+            "type": "number",
+            "description": "Cash handed back. Omit to use tendered minus the amount due."
+          },
+          "invoice_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "method",
+          "invoice_id"
+        ]
+      },
+      "ConfirmUpiDto": {
+        "type": "object",
+        "properties": {
+          "utr": {
+            "type": "string",
+            "description": "12-digit UPI / UTR reference. Optional."
+          }
+        }
+      },
+      "RazorpayVerifyDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string"
+          },
+          "razorpay_payment_id": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "razorpay_payment_id",
+          "signature"
+        ]
+      },
+      "RazorpayCollectDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "checkout",
+              "link"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "RazorpaySettingsDto": {
+        "type": "object",
+        "properties": {
+          "key_id": {
+            "type": "string",
+            "example": "rzp_test_key"
+          },
+          "key_secret": {
+            "type": "string",
+            "description": "Write-only. Omitted on later saves."
+          },
+          "webhook_secret": {
+            "type": "string",
+            "description": "Write-only."
+          }
+        },
+        "required": [
+          "key_id"
+        ]
+      },
+      "WebhookBodyDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://example.com/hooks/billflow"
+          },
+          "events": {
+            "example": [
+              "invoice.paid",
+              "invoice.sent"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string",
+            "description": "At least 16 characters. Generated when omitted."
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "url",
+          "events"
+        ]
+      },
+      "TaxRateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "GST 18%"
+          },
+          "rate": {
+            "type": "number",
+            "example": 18
+          },
+          "tax_type": {
+            "type": "string",
+            "enum": [
+              "gst",
+              "igst",
+              "cgst",
+              "sgst",
+              "exempt",
+              "custom"
+            ]
+          },
+          "is_default": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "rate"
+        ]
+      },
+      "UpdateSiteDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "tagline": {
+            "type": "string"
+          },
+          "about": {
+            "type": "string"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "custom_domain": {
+            "type": "string",
+            "example": "pay.acmetraders.in"
+          },
+          "theme": {
+            "type": "object"
+          }
+        }
+      },
+      "ApplyTemplateDto": {
+        "type": "object",
+        "properties": {
+          "template_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id"
+        ]
+      },
+      "DraftDto": {
+        "type": "object",
+        "properties": {
+          "overrides": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "hero_image_url and about_image_url must be https URLs or null."
+          },
+          "template_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "overrides"
+        ]
+      },
+      "SubdomainDto": {
+        "type": "object",
+        "properties": {
+          "subdomain": {
+            "type": "string",
+            "example": "acme"
+          }
+        },
+        "required": [
+          "subdomain"
+        ]
+      },
+      "DomainDto": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "example": "pay.example.com"
+          }
+        },
+        "required": [
+          "domain"
+        ]
+      },
+      "ShareDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "GstinDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "WhatsappDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SchedulesDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ProductDto": {
+        "type": "object",
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "nullable": true,
+            "description": "https URL. Empty or null clears it."
+          }
+        }
+      },
+      "PosSettingsDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CheckoutDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "MessagingSettingsDto": {
+        "type": "object",
+        "properties": {
+          "sms_provider": {
+            "type": "string",
+            "enum": [
+              "none",
+              "msg91",
+              "twilio"
+            ]
+          },
+          "email_provider": {
+            "type": "string",
+            "enum": [
+              "none",
+              "smtp",
+              "resend"
+            ]
+          },
+          "msg91_sender_id": {
+            "type": "string"
+          },
+          "msg91_dlt_template_id": {
+            "type": "string"
+          },
+          "twilio_from": {
+            "type": "string"
+          },
+          "smtp_host": {
+            "type": "string"
+          },
+          "smtp_port": {
+            "type": "number"
+          },
+          "smtp_user": {
+            "type": "string"
+          },
+          "resend_from": {
+            "type": "string"
+          },
+          "msg91_auth_key": {
+            "type": "string",
+            "description": "Write-only. Omitted values are left unchanged."
+          },
+          "twilio_account_sid": {
+            "type": "string",
+            "description": "Write-only."
+          },
+          "twilio_auth_token": {
+            "type": "string",
+            "description": "Write-only."
+          },
+          "smtp_pass": {
+            "type": "string",
+            "description": "Write-only."
+          },
+          "resend_api_key": {
+            "type": "string",
+            "description": "Write-only."
+          }
+        },
+        "required": [
+          "sms_provider",
+          "email_provider"
+        ]
+      },
+      "SyncLineDto": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "gst_rate": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "discount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "description",
+          "quantity",
+          "unit_price"
+        ]
+      },
+      "SyncPaymentDto": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "amount_tendered": {
+            "type": "number"
+          },
+          "change_given": {
+            "type": "number"
+          },
+          "paid_at": {
+            "type": "string"
+          },
+          "transaction_ref": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id",
+          "method",
+          "amount"
+        ]
+      },
+      "SyncSaleDto": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "customer_id": {
+            "type": "string"
+          },
+          "device_id": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncLineDto"
+            }
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncPaymentDto"
+            }
+          }
+        },
+        "required": [
+          "client_id",
+          "lines"
+        ]
+      },
+      "SyncSalesDto": {
+        "type": "object",
+        "properties": {
+          "device_id": {
+            "type": "string"
+          },
+          "sales": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncSaleDto"
+            }
+          }
+        },
+        "required": [
+          "sales"
+        ]
+      },
+      "PurchaseLineDto": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "gst_rate": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "description",
+          "quantity",
+          "unit_price"
+        ]
+      },
+      "PurchaseDto": {
+        "type": "object",
+        "properties": {
+          "supplier": {
+            "type": "string"
+          },
+          "bill_date": {
+            "type": "string"
+          },
+          "gst_rate": {
+            "type": "number"
+          },
+          "photo_ref": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseLineDto"
+            }
+          }
+        },
+        "required": [
+          "lines"
+        ]
+      },
+      "CategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "sort_order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ReminderPlanDto": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "sms",
+              "email"
+            ]
+          },
+          "before_days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "on_due": {
+            "type": "boolean"
+          },
+          "after_days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "template": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "channel",
+          "before_days",
+          "on_due",
+          "after_days"
+        ]
+      },
+      "VoiceDto": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "audio_base64": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "bn"
+            ]
+          }
+        }
+      },
+      "BillDto": {
+        "type": "object",
+        "properties": {
+          "image_base64": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-navy: #0f172a;
+  --color-emerald: #10b981;
+  --color-teal: #14b8a6;
+  --font-sans: var(--font-outfit), "Avenir Next", "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f4f6f5;
+  color: #0f172a;
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}

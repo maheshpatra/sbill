@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Button, Empty, ErrorNote, Loading, StatusBadge, inputClass } from "@/components/ui";
+import { Button, Empty, ErrorNote, StatusBadge, TableSkeleton, inputClass } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { canWrite } from "@/lib/access";
 import { inr } from "@/lib/money";
@@ -80,7 +80,7 @@ export default function InvoicesPage() {
         <Button type="submit" variant="navy">Search</Button>
       </form>
       {error ? <ErrorNote message={error} onRetry={load} /> : null}
-      {loading ? <Loading /> : null}
+      {loading ? <TableSkeleton /> : null}
       {!loading && rows && rows.data.length === 0 ? (
         <Empty title="Nothing matches" body="Try another status, or create an invoice for a customer." />
       ) : null}

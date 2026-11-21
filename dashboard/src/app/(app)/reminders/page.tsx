@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { authed } from "@/lib/api";
 import { FeatureBanner } from "@/components/feature-gate";
-import { Button, Card, ErrorNote, Loading, inputClass } from "@/components/ui";
+import { Button, Card, CardSkeleton, ErrorNote, inputClass } from "@/components/ui";
 
 interface Schedule {
   offset_days: number;
@@ -53,7 +53,7 @@ export default function RemindersPage() {
     load();
   }, []);
 
-  if (loading) return <Loading />;
+  if (loading) return <CardSkeleton />;
 
   return (
     <div className="space-y-6">

@@ -939,6 +939,43 @@ begin
     raise exception 'plan change was not audited';
   end if;
 
+  -- A shop created before tenant_subscriptions existed has one open legacy
+  -- subscription and no platform row. Changing the plan must reuse that row.
+  insert into public.tenants (id, name, slug, plan, status)
+  values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3', 'Legacy Shop', 'legacy-shop', 'starter', 'active');
+  insert into public.subscriptions (
+    id, tenant_id, plan_id, plan_name, price, currency, billing_cycle, status,
+    start_date, current_period_start, current_period_end
+  ) values (
+    '66666666-6666-4666-8666-666666666661',
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3',
+    (select id from public.plans where code = 'starter'),
+    'Starter', 199, 'INR', 'monthly', 'active',
+    current_date, current_date, current_date + 30
+  );
+  delete from public.tenant_subscriptions
+  where tenant_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3';
+  perform public.admin_set_tenant_plan('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3', 'business');
+  if (select plan from public.tenants where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3') <> 'business' then
+    raise exception 'legacy subscription plan change did not stick';
+  end if;
+  if (
+    select count(*) from public.subscriptions
+    where tenant_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3'
+      and status in ('trialing', 'active', 'past_due', 'paused')
+  ) <> 1 then
+    raise exception 'plan change created a second open subscription';
+  end if;
+  if (
+    select p.code
+    from public.tenant_subscriptions ts
+    join public.plans p on p.id = ts.plan_id
+    where ts.tenant_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3'
+      and ts.status in ('trialing', 'active', 'past_due', 'paused')
+  ) <> 'business' then
+    raise exception 'tenant subscription was not moved to business';
+  end if;
+
   perform set_config('request.jwt.claim.sub', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', false);
   catalog := public.list_invoice_templates();
   if (select count(*) from jsonb_array_elements(catalog) item where item ->> 'key' = 'classic' and (item ->> 'entitled')::boolean) <> 1 then

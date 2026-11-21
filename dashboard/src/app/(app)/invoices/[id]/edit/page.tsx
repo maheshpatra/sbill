@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TemplatePicker } from "@/components/template-picker";
-import { Button, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
+import { Button, CardSkeleton, ErrorNote, Field, inputClass } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { invoiceTemplate, isTemplateKey, persistInvoiceTemplate, type TemplateKey } from "@/lib/templates";
 import type { Invoice } from "@/lib/types";
@@ -63,7 +63,7 @@ export default function EditInvoicePage() {
   }
 
   if (error && !invoice) return <ErrorNote message={error} />;
-  if (!invoice) return <Loading />;
+  if (!invoice) return <CardSkeleton cards={2} />;
 
   return (
     <form className="mx-auto max-w-xl space-y-4" onSubmit={save}>
@@ -76,7 +76,7 @@ export default function EditInvoicePage() {
       <Field label="Notes"><textarea className={inputClass} rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} /></Field>
       <Field label="Terms"><textarea className={inputClass} rows={3} value={terms} onChange={(event) => setTerms(event.target.value)} /></Field>
       {error ? <ErrorNote message={error} /> : null}
-      <Button type="submit" disabled={pending}>{pending ? "Saving…" : "Save changes"}</Button>
+      <Button type="submit" loading={pending}>{pending ? "Saving…" : "Save changes"}</Button>
     </form>
   );
 }

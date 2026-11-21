@@ -75,7 +75,7 @@ export default function OnboardingPage() {
           />
         </Field>
         {error ? <ErrorNote message={error} /> : null}
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" loading={pending}>
           {pending ? "Creating…" : "Create business"}
         </Button>
       </form>

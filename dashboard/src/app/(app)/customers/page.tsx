@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Empty, ErrorNote, Loading } from "@/components/ui";
+import { Empty, ErrorNote, ListSkeleton } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { canWrite } from "@/lib/access";
 import type { Customer, Me, Page } from "@/lib/types";
@@ -36,7 +36,7 @@ export default function CustomersPage() {
         ) : null}
       </div>
       {error ? <ErrorNote message={error} onRetry={load} /> : null}
-      {loading ? <Loading /> : null}
+      {loading ? <ListSkeleton /> : null}
       {!loading && rows.length === 0 ? <Empty title="No customers yet" body="Add the people and shops you invoice." /> : null}
       <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white">
         {rows.map((customer) => (

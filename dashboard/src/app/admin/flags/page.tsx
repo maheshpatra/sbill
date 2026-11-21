@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ListSkeleton } from "@/components/ui";
 import { authed } from "@/lib/api";
 import type { Plan } from "@/lib/types";
 
@@ -16,6 +17,7 @@ export default function AdminFlagsPage() {
   const [code, setCode] = useState("growth");
   const [flags, setFlags] = useState<Flag[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<Flag | null>(null);
 
   useEffect(() => {
@@ -23,9 +25,11 @@ export default function AdminFlagsPage() {
   }, []);
 
   useEffect(() => {
+    setLoading(true);
     void authed<{ data: Flag[] }>(`/admin/plans/${code}/features`)
       .then((page) => setFlags(page.data ?? []))
-      .catch((reason: Error) => setError(reason.message));
+      .catch((reason: Error) => setError(reason.message))
+      .finally(() => setLoading(false));
   }, [code]);
 
   function save(next: Flag[]) {
@@ -44,6 +48,7 @@ export default function AdminFlagsPage() {
           {plans.map((plan) => <option key={plan.code} value={plan.code}>{plan.name}</option>)}
         </select>
       </label>
+      {loading ? <ListSkeleton rows={8} /> : (
       <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white">
         {flags.map((flag) => (
           <li key={flag.feature_key} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
@@ -54,6 +59,7 @@ export default function AdminFlagsPage() {
           </li>
         ))}
       </ul>
+      )}
       {pending ? (
         <ConfirmDialog
           title={`Turn off ${pending.feature_key}?`}

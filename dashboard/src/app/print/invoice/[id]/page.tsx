@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { InvoiceSheet } from "@/components/invoice-sheet";
+import { Loading } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { num } from "@/lib/money";
 import { readLogo } from "@/lib/brand-assets";
@@ -11,7 +12,7 @@ import type { Invoice, Tenant } from "@/lib/types";
 
 export default function PrintInvoiceRoute() {
   return (
-    <Suspense fallback={<p className="p-6">Loading the bill…</p>}>
+    <Suspense fallback={<Loading label="Loading the bill" />}>
       <PrintInvoicePage />
     </Suspense>
   );
@@ -66,7 +67,7 @@ function PrintInvoicePage() {
         </button>
       </div>
       {error ? <p>{error}</p> : null}
-      {sheet ? <InvoiceSheet template={template} invoice={sheet} logo={logo} /> : <p>Loading the bill…</p>}
+      {sheet ? <InvoiceSheet template={template} invoice={sheet} logo={logo} /> : error ? null : <Loading label="Loading the bill" />}
     </main>
   );
 }

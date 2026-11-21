@@ -7,7 +7,7 @@ import { CashPanel, PayMethodTabs } from "@/components/cash-panel";
 import { SavedCheck } from "@/components/saved-check";
 import { InvoiceEvents } from "@/components/invoice-events";
 import { OnlineActions, PaymentLinkPanel, openTenantCheckout, type RazorpayLinkStart, type RazorpayStart } from "@/components/online-panel";
-import { Button, ErrorNote, Loading, StatusBadge, inputClass } from "@/components/ui";
+import { Button, CardSkeleton, ErrorNote, StatusBadge, inputClass } from "@/components/ui";
 import { authed, authedBlob } from "@/lib/api";
 import { rememberedPayMethod, rememberPayMethod, type PayMethod } from "@/lib/cash";
 import { featureOn, useEntitlements } from "@/lib/entitlements";
@@ -102,7 +102,7 @@ export default function InvoiceDetailPage() {
     }
   }
 
-  if (loading) return <Loading />;
+  if (loading) return <CardSkeleton />;
   if (!invoice) return <ErrorNote message={error ?? "Invoice not found"} onRetry={load} />;
 
   const current = invoice;

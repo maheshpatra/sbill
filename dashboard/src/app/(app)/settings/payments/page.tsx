@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { buildUpiUri, upiQrSvg, UPI_VPA } from "@billflow/upi";
-import { Button, Card, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
+import { Button, Card, CardSkeleton, ErrorNote, Field, inputClass } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { canAdmin } from "@/lib/access";
 import type { Me, Tenant } from "@/lib/types";
@@ -78,7 +78,7 @@ export default function PaymentSettingsPage() {
     }
   }
 
-  if (loading) return <Loading />;
+  if (loading) return <CardSkeleton />;
 
   const uri = preview ? buildUpiUri({ pa: vpa.trim(), pn: payee.trim(), am: "1.00", tn: "billflow test", tr: "TESTQR" }) : "";
 
@@ -99,7 +99,7 @@ export default function PaymentSettingsPage() {
           <Field label="Name in the UPI app">
             <input className={inputClass} disabled={!admin} value={payee} onChange={(event) => setPayee(event.target.value)} />
           </Field>
-          {admin ? <div className="sm:col-span-2"><Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save"}</Button></div> : <p className="text-sm text-slate-600 sm:col-span-2">Only an owner or admin can change payment settings.</p>}
+          {admin ? <div className="sm:col-span-2"><Button type="submit" loading={busy}>{busy ? "Saving…" : "Save"}</Button></div> : <p className="text-sm text-slate-600 sm:col-span-2">Only an owner or admin can change payment settings.</p>}
         </form>
       </Card>
       <Card>

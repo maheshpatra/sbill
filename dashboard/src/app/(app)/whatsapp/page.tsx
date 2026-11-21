@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { authed } from "@/lib/api";
 import { FeatureBanner } from "@/components/feature-gate";
-import { Button, Card, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
+import { Button, Card, CardSkeleton, ErrorNote, Field, inputClass } from "@/components/ui";
 
 export default function WhatsappSettingsPage() {
   const [phoneNumberId, setPhoneNumberId] = useState("");
@@ -25,7 +25,7 @@ export default function WhatsappSettingsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Loading />;
+  if (loading) return <CardSkeleton cards={2} />;
 
   return (
     <Card className="mx-auto max-w-xl">

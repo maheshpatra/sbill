@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { priceInvoice } from "@billflow/gst";
 import { LanguageSwitch } from "@/i18n/provider";
@@ -13,6 +14,7 @@ import { listQueued, queueSale, type OfflineLine, type QueuedSale } from "@/lib/
 import { inr, num } from "@/lib/money";
 import { saleFromCart, syncQueuedSales } from "@/lib/sync-sales";
 import { SavedCheck } from "@/components/saved-check";
+import { Skeleton } from "@/components/ui";
 
 interface Tile {
   id: string;
@@ -68,6 +70,7 @@ export default function QuickSalePage() {
   const [receipt, setReceipt] = useState<{ number: string; total: number; change?: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [catalogLoading, setCatalogLoading] = useState(true);
 
   useEffect(() => {
     if (ready && !session) router.replace("/login");
@@ -80,7 +83,9 @@ export default function QuickSalePage() {
       if (parsed && !Array.isArray(parsed)) {
         setCategories(parsed.categories ?? []);
         setHasLoose(Boolean(parsed.uncategorized?.length));
-        setProducts(flattenTiles(parsed));
+        const tiles = flattenTiles(parsed);
+        setProducts(tiles);
+        if (tiles.length) setCatalogLoading(false);
       }
     }
     setOnline(navigator.onLine);
@@ -113,7 +118,8 @@ export default function QuickSalePage() {
         if (tiles.length) setProducts(tiles);
         localStorage.setItem(CATALOG, JSON.stringify(page));
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => setCatalogLoading(false));
   }, [session]);
 
   const visible = useMemo(() => {
@@ -135,6 +141,17 @@ export default function QuickSalePage() {
   }, [cart]);
 
   const count = cart.reduce((sum, line) => sum + line.quantity, 0);
+
+  function adjust(index: number, delta: number) {
+    setReceipt(null);
+    setCart((current) =>
+      current.flatMap((line, lineIndex) => {
+        if (lineIndex !== index) return [line];
+        const quantity = line.quantity + delta;
+        return quantity > 0 ? [{ ...line, quantity }] : [];
+      }),
+    );
+  }
 
   function add(product: Tile) {
     setReceipt(null);
@@ -250,97 +267,135 @@ export default function QuickSalePage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#f4f6f5] text-navy">
+    <main className="min-h-screen bg-[#eef3f1] text-navy lg:grid lg:grid-cols-[minmax(0,1fr)_24rem]">
       {celebrating ? <SavedCheck label={t("receipt")} onDone={() => setCelebrating(false)} /> : null}
-      <header className="flex items-center justify-between gap-3 px-4 py-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-teal">{online ? t("online") : t("offline")}</p>
-          <h1 className="text-2xl font-bold">{t("title")}</h1>
+      <section className="flex min-h-screen flex-col">
+        <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-[#eef3f1]/90 px-4 py-3 backdrop-blur lg:px-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-teal">{online ? t("online") : t("offline")}</p>
+              <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <LanguageSwitch />
+              <Link href="/" className="rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-semibold">
+                {t("back")}
+              </Link>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${online ? "bg-emerald/20 text-navy" : "bg-amber-100 text-amber-950"}`}>
+              {online ? t("online") : t("offline")}
+            </span>
+            {pending > 0 ? <span className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white">{t("pending", { count: pending })}</span> : null}
+          </div>
+        </header>
+        <div className="px-4 pt-4 lg:px-6">
+          <FeatureBanner feature="pos" label={t("locked")} />
+          {queue.length > 0 ? (
+            <ul className="mb-3 space-y-2 text-sm">
+              {queue.map((row) => (
+                <li key={row.client_id} className="rounded-2xl border border-slate-200 bg-white px-3 py-2">
+                  <span className="font-semibold">
+                    {row.status === "exists" ? t("exists") : row.status === "conflict" ? t("conflict") : t("pendingNumber")}
+                  </span>
+                  <span className="ml-2 text-slate-600">{row.number || row.reason || row.lines.map((line) => line.description).join(", ")}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <form
+            className="flex gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void parseVoice();
+            }}
+          >
+            <label className="sr-only" htmlFor="pos-voice">{t("voice")}</label>
+            <input id="pos-voice" className="h-12 min-w-0 flex-1 rounded-2xl border border-slate-300 bg-white px-4" placeholder={t("voiceHint")} value={voice} onChange={(event) => setVoice(event.target.value)} />
+            <button type="submit" className="shrink-0 rounded-2xl bg-navy px-4 text-sm font-semibold text-white">{t("voice")}</button>
+          </form>
+          <label className="sr-only" htmlFor="pos-search">{t("search")}</label>
+          <input
+            id="pos-search"
+            className="mt-3 h-14 w-full rounded-2xl border border-slate-300 bg-white px-4 text-lg shadow-sm"
+            placeholder={t("search")}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1" role="tablist">
+            {chips.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={chip === item.id}
+                className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-semibold ${chip === item.id ? "bg-navy text-white" : "border border-slate-200 bg-white text-navy"}`}
+                onClick={() => chooseChip(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <LanguageSwitch />
-          <Link href="/" className="rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-semibold">
-            {t("back")}
-          </Link>
+        <div className="grid flex-1 grid-cols-2 content-start gap-3 px-4 py-4 sm:grid-cols-3 lg:grid-cols-3 lg:px-6 xl:grid-cols-4">
+          {catalogLoading && visible.length === 0
+            ? Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-32 rounded-3xl" />)
+            : null}
+          {!catalogLoading && visible.length === 0 ? <p className="col-span-full rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm text-slate-600">{t("noGoods")}</p> : null}
+          {visible.map((product) => {
+            const qty = cart.find((line) => line.product_id === product.id)?.quantity ?? 0;
+            return (
+              <button
+                key={product.id}
+                type="button"
+                className={`flex min-h-32 flex-col items-start justify-between rounded-3xl border bg-white p-4 text-left shadow-sm transition active:scale-[0.98] ${qty > 0 ? "border-emerald ring-2 ring-emerald/30" : "border-slate-200"}`}
+                onClick={() => add(product)}
+              >
+                <span className="text-lg font-semibold leading-6">{product.name}</span>
+                <span className="mt-3 flex w-full items-center justify-between text-sm">
+                  <span className="font-semibold">{inr(product.price)}</span>
+                  {qty > 0 ? <span className="rounded-full bg-emerald px-2.5 py-0.5 font-bold text-navy">{qty}</span> : <span className="text-xs font-semibold text-slate-400">+</span>}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      </header>
-      <div className="flex flex-wrap items-center gap-2 px-4">
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${online ? "bg-emerald/20 text-navy" : "bg-amber-100 text-amber-950"}`}>
-          {online ? t("online") : t("offline")}
-        </span>
-        {pending > 0 ? <span className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white">{t("pending", { count: pending })}</span> : null}
-      </div>
-      {queue.length > 0 ? (
-        <ul className="mx-4 mt-3 space-y-2 text-sm">
-          {queue.map((row) => (
-            <li key={row.client_id} className="rounded-2xl bg-white px-3 py-2">
-              <span className="font-semibold">
-                {row.status === "exists" ? t("exists") : row.status === "conflict" ? t("conflict") : t("pendingNumber")}
-              </span>
-              <span className="ml-2 text-slate-600">{row.number || row.reason || row.lines.map((line) => line.description).join(", ")}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <div className="px-4 pt-3">
-        <FeatureBanner feature="pos" label={t("locked")} />
-        <form
-          className="mb-3 flex gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void parseVoice();
-          }}
-        >
-          <input className="h-12 flex-1 rounded-2xl border border-slate-300 bg-white px-4" placeholder={t("voiceHint")} value={voice} onChange={(event) => setVoice(event.target.value)} />
-          <button type="submit" className="rounded-2xl bg-navy px-4 text-sm font-semibold text-white">{t("voice")}</button>
-        </form>
-        <input
-          id="pos-search"
-          className="h-14 w-full rounded-2xl border border-slate-300 bg-white px-4 text-lg"
-          placeholder={t("search")}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-        <div className="mt-3 flex gap-2 overflow-x-auto" role="tablist">
-          {chips.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              role="tab"
-              aria-selected={chip === item.id}
-              className={`min-h-12 shrink-0 rounded-full px-4 text-sm font-semibold ${chip === item.id ? "bg-navy text-white" : "bg-white text-navy"}`}
-              onClick={() => chooseChip(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
+      </section>
+      <aside className="sticky bottom-0 z-20 border-t border-slate-200 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-12px_30px_rgba(15,23,42,0.06)] lg:static lg:flex lg:h-screen lg:flex-col lg:border-t-0 lg:border-l lg:px-5 lg:pt-6 lg:shadow-none">
+        <div className="mb-3 hidden lg:block">
+          <p className="text-xs font-semibold uppercase tracking-wide text-teal">{t("title")}</p>
+          <h2 className="text-xl font-bold">{cart.length ? t("items", { count }) : t("emptyCart")}</h2>
         </div>
-      </div>
-      <div className="grid flex-1 grid-cols-2 content-start gap-3 px-4 py-4 sm:grid-cols-3 lg:grid-cols-4">
-        {visible.length === 0 ? <p className="col-span-full text-sm text-slate-600">{t("noGoods")}</p> : null}
-        {visible.map((product) => {
-          const qty = cart.find((line) => line.product_id === product.id)?.quantity ?? 0;
-          return (
-            <button
-              key={product.id}
-              type="button"
-              className="flex min-h-32 flex-col items-start justify-between rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm active:bg-emerald/10"
-              onClick={() => add(product)}
-            >
-              <span className="text-lg font-semibold leading-6">{product.name}</span>
-              <span className="mt-3 flex w-full items-center justify-between text-sm">
-                <span className="font-semibold">{inr(product.price)}</span>
-                {qty > 0 ? <span className="rounded-full bg-emerald px-2 py-0.5 font-bold text-navy">{qty}</span> : null}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <footer className="sticky bottom-0 z-20 border-t border-slate-200 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {cart.length > 0 ? (
+          <ul className="mb-3 max-h-36 space-y-2 overflow-y-auto lg:max-h-none lg:flex-1">
+            {cart.map((line, index) => (
+              <li key={`${line.product_id ?? line.description}-${index}`} className="flex items-center gap-2 rounded-2xl bg-[#f4f6f5] px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{line.description}</p>
+                  <p className="text-xs text-slate-500">{inr(line.unit_price)}{line.unit ? ` / ${line.unit}` : ""}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg font-bold" aria-label={`Remove one ${line.description}`} onClick={() => adjust(index, -1)}>−</button>
+                  <span className="w-6 text-center text-sm font-bold tabular-nums">{line.quantity}</span>
+                  <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg font-bold" aria-label={`Add one ${line.description}`} onClick={() => adjust(index, 1)}>+</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mb-3 hidden text-sm text-slate-500 lg:block">{t("emptyCart")}</p>
+        )}
+        {preview ? (
+          <p className="mb-3 text-sm text-slate-600">
+            Tax {inr(preview.tax)} · <span className="font-semibold text-navy">{inr(preview.total)}</span>
+          </p>
+        ) : null}
         {note ? <p className="mb-2 text-sm text-navy">{note}</p> : null}
         {receipt ? (
           <p className="mb-2 text-sm font-semibold">
             {t("receipt")} {receipt.number} · {inr(receipt.total)}
+            {receipt.change ? ` · ${t("change")} ${inr(receipt.change)}` : ""}
           </p>
         ) : null}
         <div className="mb-3 grid grid-cols-2 gap-2" role="group" aria-label={t("collect")}>
@@ -348,7 +403,7 @@ export default function QuickSalePage() {
             <button
               key={value}
               type="button"
-              className={`h-12 rounded-2xl text-base font-semibold ${method === value ? "bg-navy text-white" : "border border-slate-300"}`}
+              className={`h-12 rounded-2xl text-base font-semibold ${method === value ? "bg-navy text-white" : "border border-slate-300 bg-white"}`}
               onClick={() => setMethod(value)}
             >
               {value === "cash" ? t("cash") : t("upi")}
@@ -358,13 +413,17 @@ export default function QuickSalePage() {
         <button
           type="button"
           disabled={!cart.length || busy}
+          aria-busy={busy || undefined}
           className="flex h-16 w-full items-center justify-between rounded-3xl bg-emerald px-5 text-lg font-bold text-navy disabled:opacity-40"
           onClick={() => void collect()}
         >
-          <span>{cart.length ? t("items", { count }) : t("emptyCart")}</span>
+          <span className="inline-flex items-center gap-2">
+            {busy ? <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden /> : null}
+            {cart.length ? t("items", { count }) : t("emptyCart")}
+          </span>
           <span>{preview ? `${t("collect")} ${inr(preview.total)}` : t("collect")}</span>
         </button>
-      </footer>
+      </aside>
     </main>
   );
 }

@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { InvoiceStatus } from "@/lib/types";
 
@@ -21,8 +22,14 @@ export function StatusBadge({ status }: { status: InvoiceStatus }) {
 export function Button({
   variant = "primary",
   className,
+  loading = false,
+  children,
+  disabled,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "navy" | "ghost" | "outline" | "danger" }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: "primary" | "navy" | "ghost" | "outline" | "danger";
+  loading?: boolean;
+}) {
   const styles = {
     primary: "bg-emerald text-navy hover:bg-teal",
     navy: "bg-navy text-white hover:bg-slate-800",
@@ -37,8 +44,13 @@ export function Button({
         styles,
         className,
       )}
+      aria-busy={loading || undefined}
+      disabled={disabled || loading}
       {...props}
-    />
+    >
+      {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden /> : null}
+      {children}
+    </button>
   );
 }
 
@@ -91,8 +103,65 @@ export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () 
 
 export function Loading({ label = "Loading" }: { label?: string }) {
   return (
-    <p className="text-sm text-slate-500" role="status">
-      {label}…
-    </p>
+    <div className="flex flex-col items-center justify-center gap-3 py-16" role="status" aria-live="polite">
+      <span className="relative flex h-14 w-14 items-center justify-center">
+        <span className="absolute inset-0 animate-spin rounded-full border-2 border-emerald/30 border-t-navy motion-reduce:animate-none" />
+        <img src="/brand/billflow-icon.svg" alt="" width={24} height={24} />
+      </span>
+      <p className="text-sm font-medium text-slate-500">{label}</p>
+    </div>
+  );
+}
+
+export function Skeleton({ className }: { className?: string }) {
+  return <div className={cn("animate-pulse rounded-xl bg-slate-200/80 motion-reduce:animate-none", className)} />;
+}
+
+export function ListSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <div className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white" role="status" aria-label="Loading">
+      {Array.from({ length: rows }, (_, index) => (
+        <div key={index} className="flex items-center gap-3 px-4 py-3">
+          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TableSkeleton({ rows = 6, columns = 4 }: { rows?: number; columns?: number }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white" role="status" aria-label="Loading">
+      {Array.from({ length: rows }, (_, row) => (
+        <div
+          key={row}
+          className="grid gap-3 border-b border-slate-100 px-4 py-3 last:border-0"
+          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+        >
+          {Array.from({ length: columns }, (_, column) => (
+            <Skeleton key={column} className={`h-4 ${row === 0 ? "w-16" : "w-full"}`} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function CardSkeleton({ cards = 3 }: { cards?: number }) {
+  return (
+    <div className="space-y-3" role="status" aria-label="Loading">
+      {Array.from({ length: cards }, (_, index) => (
+        <div key={index} className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-2/3" />
+        </div>
+      ))}
+    </div>
   );
 }

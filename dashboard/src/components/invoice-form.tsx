@@ -169,7 +169,7 @@ export function InvoiceForm() {
         </p>
       ) : null}
       {error ? <ErrorNote message={error} /> : null}
-      <Button type="submit" disabled={pending || customers.length === 0}>
+      <Button type="submit" loading={pending} disabled={customers.length === 0}>
         {pending ? "Saving…" : "Save draft"}
       </Button>
     </form>

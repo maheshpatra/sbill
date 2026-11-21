@@ -1,5 +1,10 @@
 # Linked project: raflrreyawwexjerfqpc (Mumbai, ap-south-1).
 # https://raflrreyawwexjerfqpc.supabase.co
+#
+# Hosted Auth does not read this file until it is pushed. The dashboard steps
+# are in the pull request: Confirm email on, OTP length 6, OTP expiry 3600
+# (Supabase allows up to 86400), and the three templates below pasted into
+# Authentication → Emails.
 project_id = "raflrreyawwexjerfqpc"
 
 [db]
@@ -7,3 +12,35 @@ major_version = 15
 
 [db.seed]
 sql_paths = ["./seed.sql"]
+
+[auth]
+enabled = true
+site_url = "https://service.zuvoclub.in"
+additional_redirect_urls = [
+  "https://service.zuvoclub.in/auth/callback",
+  "http://127.0.0.1:4319/auth/callback",
+  "http://localhost:4319/auth/callback",
+]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+secure_password_change = false
+max_frequency = "1s"
+otp_length = 6
+otp_expiry = 3600
+
+[auth.email.template.confirmation]
+subject = "Your BillFlow verification code"
+content_path = "./templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Your BillFlow password reset code"
+content_path = "./templates/recovery.html"
+
+[auth.email.template.magic_link]
+subject = "Your BillFlow sign-in code"
+content_path = "./templates/magic_link.html"

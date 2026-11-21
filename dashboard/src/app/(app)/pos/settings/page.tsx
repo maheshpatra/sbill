@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { authed } from "@/lib/api";
-import { Button, Card, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
+import { Button, Card, CardSkeleton, ErrorNote, Field, inputClass } from "@/components/ui";
 
 export default function PosSettingsPage() {
   const [tax, setTax] = useState("18");
@@ -22,7 +22,7 @@ export default function PosSettingsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Loading />;
+  if (loading) return <CardSkeleton cards={2} />;
 
   return (
     <Card className="mx-auto max-w-xl">

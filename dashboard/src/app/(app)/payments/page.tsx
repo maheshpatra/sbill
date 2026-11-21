@@ -6,7 +6,7 @@ import { buildUpiUri } from "@billflow/upi";
 import { CashPanel, PayMethodTabs } from "@/components/cash-panel";
 import { LockedFeature } from "@/components/feature-gate";
 import { OnlineActions, PaymentLinkPanel, openTenantCheckout, type RazorpayLinkStart, type RazorpayStart } from "@/components/online-panel";
-import { Button, Empty, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
+import { Button, CardSkeleton, Empty, ErrorNote, Field, inputClass } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { rememberPayMethod, rememberedPayMethod, type PayMethod } from "@/lib/cash";
 import { featureOn, useEntitlements } from "@/lib/entitlements";
@@ -165,7 +165,7 @@ export default function PaymentsPage() {
     }
   }
 
-  if (loading && invoices.length === 0) return <Loading label="Loading payments" />;
+  if (loading && invoices.length === 0) return <CardSkeleton />;
 
   return (
     <div className="space-y-6">

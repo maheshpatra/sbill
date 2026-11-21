@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Card, ErrorNote, Loading } from "@/components/ui";
+import { Button, Card, CardSkeleton, ErrorNote } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { canAdmin } from "@/lib/access";
 import { inr, num } from "@/lib/money";
@@ -78,7 +78,7 @@ export default function BillingPage() {
     }
   }
 
-  if (loading) return <Loading />;
+  if (loading) return <CardSkeleton />;
 
   return (
     <div className="space-y-6">
@@ -144,7 +144,7 @@ export default function BillingPage() {
               <p className="mt-2 text-3xl font-bold">{num(price) === 0 ? "Free" : inr(price)}</p>
               <p className={`mt-3 text-sm ${current ? "text-slate-200" : "text-slate-600"}`}>{plan.description}</p>
               {admin ? (
-                <Button className="mt-6" variant={current ? "primary" : "navy"} disabled={pending === plan.code || current} onClick={() => void choose(plan)}>
+                <Button className="mt-6" variant={current ? "primary" : "navy"} loading={pending === plan.code} disabled={current} onClick={() => void choose(plan)}>
                   {current ? "Current plan" : pending === plan.code ? "Switching…" : "Choose"}
                 </Button>
               ) : (

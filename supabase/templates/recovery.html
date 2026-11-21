@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reset your BillFlow password</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f4f6f5;font-family:Avenir Next,Segoe UI,Helvetica,Arial,sans-serif;color:#0f172a;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f6f5;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px;background:#ffffff;border:1px solid #e2e8f0;border-radius:24px;padding:32px 28px;">
+            <tr>
+              <td>
+                <p style="margin:0;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#0f766e;">BillFlow</p>
+                <h1 style="margin:12px 0 8px;font-size:28px;line-height:1.2;">Reset your password</h1>
+                <p style="margin:0 0 24px;font-size:15px;line-height:1.5;color:#475569;">Enter this code on the forgot-password page for {{ .Email }}, then choose a new password.</p>
+                <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#64748b;">Reset code</p>
+                <p style="margin:0 0 24px;font-size:40px;line-height:1;font-weight:800;letter-spacing:0.28em;color:#0f172a;">{{ .Token }}</p>
+                <p style="margin:0 0 24px;font-size:14px;line-height:1.5;color:#475569;">This code is valid for 60 minutes. If you did not ask to reset your password, you can ignore this email.</p>
+                <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#0f172a;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;border-radius:999px;padding:12px 18px;">Open BillFlow</a>
+              </td>
+            </tr>
+          </table>
+          <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">BillFlow · bills and payments</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

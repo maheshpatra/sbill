@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LockedFeature } from "@/components/feature-gate";
-import { Button, Card, Empty, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
+import { Button, Card, Empty, ErrorNote, Field, ListSkeleton, inputClass } from "@/components/ui";
 import { ImageCropper } from "@/components/image-cropper";
 import { ApiError, authed } from "@/lib/api";
 import { publishImage } from "@/lib/brand-assets";
@@ -184,7 +184,7 @@ export default function ProductsPage() {
             </form>
           ) : null}
         </Card>
-        {loading ? <Loading label="Loading products" /> : null}
+        {loading ? <ListSkeleton /> : null}
         {!loading && rows.length === 0 ? (
           <Empty title="No products yet" body="Add the things you sell. Stock counts wait for the Growth plan." />
         ) : null}
@@ -286,7 +286,7 @@ export default function ProductsPage() {
                 </Field>
               </LockedFeature>
               <div className="flex gap-2 sm:col-span-2">
-                <Button type="submit" disabled={busy}>{busy ? "Saving…" : editing ? "Update product" : "Add product"}</Button>
+                <Button type="submit" loading={busy}>{busy ? "Saving…" : editing ? "Update product" : "Add product"}</Button>
                 {editing ? (
                   <Button type="button" variant="ghost" onClick={() => { setEditing(null); setForm(blank); }}>
                     Cancel

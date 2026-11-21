@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { encryptSecret, verifyCheckoutSignature, verifyWebhookSignature } from './secret-box';
 import { TenantRazorpayService } from './tenant-razorpay.service';
@@ -7,14 +7,12 @@ describe('tenant Razorpay signatures', () => {
   const secret = 'tenant_webhook_secret';
 
   it('accepts a checkout signature of order_id|payment_id', () => {
-    const { createHmac } = require('crypto') as typeof import('crypto');
     const signature = createHmac('sha256', 'key_secret').update('order_1|pay_1').digest('hex');
     expect(verifyCheckoutSignature('order_1', 'pay_1', signature, 'key_secret')).toBe(true);
     expect(verifyCheckoutSignature('order_1', 'pay_1', signature, 'other')).toBe(false);
   });
 
   it('accepts the webhook body signature', () => {
-    const { createHmac } = require('crypto') as typeof import('crypto');
     const raw = Buffer.from('{"event":"payment.captured"}');
     const signature = createHmac('sha256', secret).update(raw).digest('hex');
     expect(verifyWebhookSignature(raw, signature, secret)).toBe(true);
@@ -76,7 +74,6 @@ describe('tenant Razorpay webhook idempotency', () => {
       payload: { payment: { entity: { id: 'pay_live', order_id: 'order_live', notes: { payment_intent_id: 'pay-intent' } } } },
     };
     const raw = Buffer.from(JSON.stringify(body));
-    const { createHmac } = require('crypto') as typeof import('crypto');
     const signature = createHmac('sha256', 'whsec_tenant').update(raw).digest('hex');
 
     const first = await service.handleWebhook('20000000-0000-4000-8000-000000000001', raw, signature, 'evt_1', body);

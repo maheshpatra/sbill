@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CustomerForm } from "@/components/customer-form";
-import { Button, ErrorNote, Loading } from "@/components/ui";
+import { Button, CardSkeleton, ErrorNote } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { canWrite } from "@/lib/access";
 import type { Customer, Me } from "@/lib/types";
@@ -25,7 +25,7 @@ export default function EditCustomerPage() {
   }, [params.id]);
 
   if (error) return <ErrorNote message={error} />;
-  if (!customer) return <Loading />;
+  if (!customer) return <CardSkeleton cards={2} />;
   if (!writable) {
     return (
       <div>

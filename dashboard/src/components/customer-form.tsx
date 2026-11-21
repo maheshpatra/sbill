@@ -76,7 +76,7 @@ export function CustomerForm({
       </Field>
       <Field label="Notes"><textarea className={inputClass} rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} /></Field>
       {error ? <ErrorNote message={error} /> : null}
-      <Button type="submit" disabled={pending}>{pending ? "Saving…" : "Save customer"}</Button>
+      <Button type="submit" loading={pending}>{pending ? "Saving…" : "Save customer"}</Button>
     </form>
   );
 }

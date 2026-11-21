@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ListSkeleton } from "@/components/ui";
 import { authed } from "@/lib/api";
 
 interface Row {
@@ -15,12 +16,15 @@ interface Row {
 export default function AdminTemplatesPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<Row | null>(null);
 
   function load() {
+    setLoading(true);
     void authed<{ data: Row[] }>("/admin/templates")
       .then((page) => setRows(page.data ?? []))
-      .catch((reason: Error) => setError(reason.message));
+      .catch((reason: Error) => setError(reason.message))
+      .finally(() => setLoading(false));
   }
 
   useEffect(() => {
@@ -38,6 +42,7 @@ export default function AdminTemplatesPage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Invoice templates</h1>
       {error ? <p className="text-sm text-rose-700">{error}</p> : null}
+      {loading ? <ListSkeleton /> : null}
       <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white">
         {rows.map((row) => (
           <li key={row.key} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { notFound, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/ui";
 import { isSuperAdmin } from "@/lib/admin-access";
 import { authed } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -42,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [ready, session, router]);
 
   if (error) return <p className="p-8 text-sm">{error}</p>;
-  if (!ready || allowed === null) return <p className="p-8 text-sm">Checking access…</p>;
+  if (!ready || allowed === null) return <Loading label="Checking access" />;
   if (!allowed) notFound();
 
   return (

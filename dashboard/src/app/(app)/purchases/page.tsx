@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card, Empty, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
+import { Button, Card, Empty, ErrorNote, Field, ListSkeleton, inputClass } from "@/components/ui";
 import { authed, NOT_IN_THIS_ENVIRONMENT } from "@/lib/api";
 import { inr, num } from "@/lib/money";
 
@@ -202,11 +202,11 @@ export default function PurchasesPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {review ? <Button type="button" variant="ghost" onClick={() => setReview(false)}>Edit</Button> : null}
-            <Button type="submit" disabled={busy}>{busy ? "Saving…" : review ? "Save purchase" : "Review"}</Button>
+            <Button type="submit" loading={busy}>{busy ? "Saving…" : review ? "Save purchase" : "Review"}</Button>
           </div>
         </form>
       </Card>
-      {loading ? <Loading label="Loading purchases" /> : null}
+      {loading ? <ListSkeleton /> : null}
       {!loading && rows.length === 0 ? <Empty title="No purchases yet" body="A saved supplier bill will show up here." /> : null}
       {rows.length > 0 ? (
         <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white text-sm">

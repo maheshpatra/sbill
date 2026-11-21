@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button, ErrorNote, Field, inputClass } from "@/components/ui";
+import { Button, CardSkeleton, ErrorNote, Field, inputClass } from "@/components/ui";
 import { ApiError, authed } from "@/lib/api";
 
 type StorageId = "supabase" | "cloudinary" | "r2";
@@ -59,6 +59,7 @@ export default function AdminSitePage() {
   const [secretOpen, setSecretOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const secretRef = useRef<HTMLInputElement>(null);
 
   function applySettings(row: AdminSettings) {
@@ -81,7 +82,8 @@ export default function AdminSitePage() {
       .catch((reason: Error) => {
         const preview = process.env.NODE_ENV !== "production" && new URLSearchParams(window.location.search).get("preview") === "local";
         if (!preview) setError(reason.message);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const supabase = providerState(settings, "supabase");
@@ -97,6 +99,8 @@ export default function AdminSitePage() {
     setSecretOpen(false);
     return typed;
   }
+
+  if (loading) return <CardSkeleton />;
 
   return (
     <form

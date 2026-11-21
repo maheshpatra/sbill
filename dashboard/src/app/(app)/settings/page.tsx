@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { isValidGstin } from "@billflow/gst";
 import { BrandSettings } from "@/components/brand-settings";
 import { LockedFeature } from "@/components/feature-gate";
-import { Button, Card, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
+import { Button, Card, CardSkeleton, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { canAdmin } from "@/lib/access";
 import { GST_STATES } from "@/lib/states";
@@ -103,7 +103,7 @@ export default function SettingsPage() {
     }
   }
 
-  if (loading) return <Loading />;
+  if (loading) return <CardSkeleton />;
   if (!tenant || !me) return <ErrorNote message={error ?? "Could not load settings"} onRetry={load} />;
 
   const admin = canAdmin(me.user?.role);
@@ -240,7 +240,7 @@ function MessagingSettings() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className="mt-4 text-sm text-slate-500">Loading SMS and email…</p>;
+  if (loading) return <Loading label="Loading SMS and email" />;
 
   return (
     <form

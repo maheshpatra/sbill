@@ -10,7 +10,7 @@ import { canAdmin } from "@/lib/access";
 import { getSupabase } from "@/lib/supabase";
 import type { Me } from "@/lib/types";
 import { FeatureBanner } from "@/components/feature-gate";
-import { Button, Card, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
+import { Button, Card, CardSkeleton, ErrorNote, Field, inputClass } from "@/components/ui";
 
 interface TemplateRow {
   id: string;
@@ -228,7 +228,7 @@ export default function WebsitePage() {
     setNotice("Logo uploaded. Save the draft to keep it.");
   }
 
-  if (loading) return <Loading label="Loading your site" />;
+  if (loading) return <CardSkeleton />;
   if (!payload) return <ErrorNote message={error ?? "Could not load the website"} onRetry={load} />;
 
   return (

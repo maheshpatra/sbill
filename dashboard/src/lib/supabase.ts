@@ -11,6 +11,11 @@ export function supabaseConfigured() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && supabasePublishableKey());
 }
 
+export function authRedirectUrl() {
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:4319").replace(/\/$/, "");
+  return `${base}/auth/callback`;
+}
+
 export function getSupabase() {
   if (!supabaseConfigured()) {
     throw new Error("Supabase URL and publishable key are not set.");

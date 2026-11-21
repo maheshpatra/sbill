@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { LockedFeature } from "@/components/feature-gate";
-import { Card, Empty, ErrorNote, Loading, StatusBadge } from "@/components/ui";
+import { Card, CardSkeleton, Empty, ErrorNote, StatusBadge } from "@/components/ui";
 import { authed } from "@/lib/api";
 import { inr, inrTight, num } from "@/lib/money";
 import type { Invoice, Page, Payment } from "@/lib/types";
@@ -52,7 +52,7 @@ export default function OverviewPage() {
     load();
   }, []);
 
-  if (loading) return <Loading label={t("loading")} />;
+  if (loading) return <CardSkeleton cards={4} />;
   if (error) return <ErrorNote message={error} onRetry={load} />;
 
   const now = new Date();

@@ -1,4 +1,4 @@
-import { financialYear, formatFyInvoiceNumber, gstinChecksum, isValidGstin, rupeesInWords, supplyFromStates } from '@billflow/gst';
+import { financialYear, formatFyInvoiceNumber, gstinChecksum, isValidGstin, normalizeGstin, rupeesInWords, supplyFromStates } from '@billflow/gst';
 
 describe('India GST helpers', () => {
   it('checks a GSTIN checksum against itself', () => {
@@ -7,6 +7,10 @@ describe('India GST helpers', () => {
     expect(isValidGstin(gstin)).toBe(true);
     expect(isValidGstin(`${body}0`)).toBe(false);
     expect(isValidGstin('not-a-gstin')).toBe(false);
+    expect(normalizeGstin('  27aaaaa0000a1z5  ')).toBe('27AAAAA0000A1Z5');
+    expect(normalizeGstin('')).toBeNull();
+    expect(normalizeGstin('   ')).toBeNull();
+    expect(normalizeGstin(null)).toBeNull();
   });
 
   it('keeps financial-year invoice numbers within 16 characters', () => {

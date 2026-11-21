@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { isValidGstin } from '@billflow/gst';
 import { AuthContext } from '../common/auth-context';
 import { raiseSupabase } from '../common/supabase-error';
 import { EntitlementsService } from '../entitlements/entitlements.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateTenantDto, InviteMemberDto, SwitchTenantDto, UpdateMemberDto, UpdateTenantDto } from './dto';
+
+const GSTIN_FORMAT = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
 @Injectable()
 export class TenantsService {
@@ -45,6 +48,11 @@ export class TenantsService {
   }
 
   async update(auth: AuthContext, dto: UpdateTenantDto) {
+    if (dto.gstin && GSTIN_FORMAT.test(dto.gstin) && !isValidGstin(dto.gstin)) {
+      throw new BadRequestException(
+        'Enter a valid 15-character GSTIN, for example 22AAAAA0000A1ZC, or leave the field blank.',
+      );
+    }
     const tenantId = await this.supabase.currentTenantId(auth.token);
     const { data, error } = await this.supabase
       .userClient(auth.token)

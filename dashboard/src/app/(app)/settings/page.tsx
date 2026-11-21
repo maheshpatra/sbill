@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { isValidGstin } from "@billflow/gst";
+import { isValidGstin, normalizeGstin } from "@billflow/gst";
 import { BrandSettings } from "@/components/brand-settings";
 import { LockedFeature } from "@/components/feature-gate";
 import { Button, Card, CardSkeleton, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
@@ -10,6 +10,15 @@ import { authed } from "@/lib/api";
 import { canAdmin } from "@/lib/access";
 import { GST_STATES } from "@/lib/states";
 import type { Me, Member, Role, Tenant } from "@/lib/types";
+
+const GSTIN_ERROR = "Enter a valid 15-character GSTIN, for example 22AAAAA0000A1ZC, or leave the field blank.";
+
+function gstinHint(value: string | null) {
+  const normalized = normalizeGstin(value);
+  if (!normalized) return "Optional. Leave blank if this business has no GSTIN.";
+  if (isValidGstin(normalized)) return "Valid GSTIN.";
+  return "Not a valid 15-character GSTIN.";
+}
 
 export default function SettingsPage() {
   const [tenant, setTenant] = useState<Tenant | null>(null);
@@ -46,20 +55,21 @@ export default function SettingsPage() {
     if (!tenant) return;
     setError(null);
     setNotice(null);
-    if (tenant.gstin && !isValidGstin(tenant.gstin)) {
-      setError("GSTIN failed the format or checksum check.");
+    const gstin = normalizeGstin(tenant.gstin);
+    if (gstin && !isValidGstin(gstin)) {
+      setError(GSTIN_ERROR);
       return;
     }
     try {
-      if (tenant.gstin) {
-        await authed("/gstin/validate", { method: "POST", body: JSON.stringify({ gstin: tenant.gstin }) });
+      if (gstin) {
+        await authed("/gstin/validate", { method: "POST", body: JSON.stringify({ gstin }) });
       }
       const updated = await authed<Tenant>("/tenants/current", {
         method: "PATCH",
         body: JSON.stringify({
           name: tenant.name,
           legal_name: tenant.legal_name,
-          gstin: tenant.gstin,
+          gstin,
           email: tenant.email,
           phone: tenant.phone,
           address_line1: tenant.address_line1,
@@ -122,7 +132,15 @@ export default function SettingsPage() {
         <form className="mt-4 grid gap-4 sm:grid-cols-2" onSubmit={saveProfile}>
           <Field label="Name"><input className={inputClass} disabled={!admin} value={tenant.name} onChange={(event) => setField("name", event.target.value)} /></Field>
           <Field label="Legal name"><input className={inputClass} disabled={!admin} value={tenant.legal_name ?? ""} onChange={(event) => setField("legal_name", event.target.value)} /></Field>
-          <Field label="GSTIN"><input className={inputClass} disabled={!admin} value={tenant.gstin ?? ""} onChange={(event) => setField("gstin", event.target.value.toUpperCase())} /></Field>
+          <Field label="GSTIN" hint={gstinHint(tenant.gstin)}>
+            <input
+              className={inputClass}
+              disabled={!admin}
+              maxLength={15}
+              value={tenant.gstin ?? ""}
+              onChange={(event) => setField("gstin", event.target.value.replace(/\s/g, "").toUpperCase())}
+            />
+          </Field>
           <p className="text-sm text-slate-600 sm:col-span-2"><Link className="font-semibold text-navy underline" href="/settings/payments">UPI payment settings</Link> hold the VPA and the name shown in the payer&apos;s app.</p>
           <Field label="Email"><input className={inputClass} disabled={!admin} value={tenant.email ?? ""} onChange={(event) => setField("email", event.target.value)} /></Field>
           <Field label="Phone"><input className={inputClass} disabled={!admin} value={tenant.phone ?? ""} onChange={(event) => setField("phone", event.target.value)} /></Field>

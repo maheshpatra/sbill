@@ -72,6 +72,7 @@ export {
   formatFyInvoiceNumber,
   gstinChecksum,
   isValidGstin,
+  normalizeGstin,
   rupeesInWords,
   supplyFromStates,
 } from "./india";

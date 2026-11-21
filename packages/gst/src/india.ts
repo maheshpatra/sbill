@@ -13,6 +13,13 @@ export function gstinChecksum(body14: string): string {
   return GSTIN_CHARS[(36 - (sum % 36)) % 36];
 }
 
+/** Trimmed uppercase GSTIN, or null when the field is blank. */
+export function normalizeGstin(value: string | null | undefined): string | null {
+  if (value == null) return null;
+  const normalized = value.trim().toUpperCase();
+  return normalized === "" ? null : normalized;
+}
+
 export function isValidGstin(value: string | null | undefined): boolean {
   if (!value) return false;
   const gstin = value.trim().toUpperCase();

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { isValidGstin } from "@billflow/gst";
+import { isValidGstin, normalizeGstin } from "@billflow/gst";
 import { authed } from "@/lib/api";
 import { GST_STATES, stateName } from "@/lib/states";
 import { Button, ErrorNote, Field, inputClass } from "./ui";
@@ -29,8 +29,9 @@ export function CustomerForm({
     event.preventDefault();
     setPending(true);
     setError(null);
-    if (gstin && !isValidGstin(gstin)) {
-      setError("GSTIN failed the format or checksum check.");
+    const normalizedGstin = normalizeGstin(gstin);
+    if (normalizedGstin && !isValidGstin(normalizedGstin)) {
+      setError("Enter a valid 15-character GSTIN, for example 22AAAAA0000A1ZC, or leave the field blank.");
       setPending(false);
       return;
     }
@@ -39,7 +40,7 @@ export function CustomerForm({
       email: email || undefined,
       phone,
       company,
-      gstin: gstin || undefined,
+      gstin: normalizedGstin,
       notes,
       billing_address: stateCode ? { state_code: stateCode, state: stateName(stateCode), country: "IN" } : undefined,
     };
@@ -63,8 +64,17 @@ export function CustomerForm({
       <Field label="Email"><input className={inputClass} type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
       <Field label="Phone"><input className={inputClass} value={phone} onChange={(event) => setPhone(event.target.value)} /></Field>
       <Field label="Company"><input className={inputClass} value={company} onChange={(event) => setCompany(event.target.value)} /></Field>
-      <Field label="GSTIN" hint={gstin ? (isValidGstin(gstin) ? `State ${gstin.slice(0, 2)} · ${stateName(gstin.slice(0, 2))}` : "Checksum does not match") : "Optional. 15 characters."}>
-        <input className={inputClass} value={gstin} maxLength={15} onChange={(event) => setGstin(event.target.value.toUpperCase())} />
+      <Field
+        label="GSTIN"
+        hint={
+          normalizeGstin(gstin)
+            ? isValidGstin(gstin)
+              ? `Valid GSTIN · state ${gstin.slice(0, 2)} · ${stateName(gstin.slice(0, 2))}`
+              : "Not a valid 15-character GSTIN."
+            : "Optional. Leave blank if this customer has no GSTIN."
+        }
+      >
+        <input className={inputClass} value={gstin} maxLength={15} onChange={(event) => setGstin(event.target.value.replace(/\s/g, "").toUpperCase())} />
       </Field>
       <Field label="Billing state">
         <select className={inputClass} value={stateCode} onChange={(event) => setStateCode(event.target.value)}>

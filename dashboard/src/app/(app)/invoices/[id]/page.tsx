@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CashPanel, PayMethodTabs } from "@/components/cash-panel";
+import { SavedCheck } from "@/components/saved-check";
+import { InvoiceEvents } from "@/components/invoice-events";
 import { OnlineActions, PaymentLinkPanel, openTenantCheckout, type RazorpayLinkStart, type RazorpayStart } from "@/components/online-panel";
 import { Button, ErrorNote, Loading, StatusBadge, inputClass } from "@/components/ui";
-import { authed } from "@/lib/api";
+import { authed, authedBlob } from "@/lib/api";
 import { rememberedPayMethod, rememberPayMethod, type PayMethod } from "@/lib/cash";
 import { featureOn, useEntitlements } from "@/lib/entitlements";
 import { canWrite } from "@/lib/access";
@@ -20,6 +22,7 @@ export default function InvoiceDetailPage() {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [role, setRole] = useState<Me["user"]>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [amount, setAmount] = useState("");
   const { entitlements, showUpgrade } = useEntitlements();
@@ -61,6 +64,10 @@ export default function InvoiceDetailPage() {
     void authed<{ connected: boolean }>("/settings/razorpay").then((row) => setConnected(row.connected)).catch(() => setConnected(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("saved") === "1") setSaved(true);
+  }, []);
 
   async function markPaid(event: React.FormEvent) {
     event.preventDefault();
@@ -182,6 +189,7 @@ export default function InvoiceDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
+      {saved ? <SavedCheck label="Bill saved" onDone={() => setSaved(false)} /> : null}
       <div className="no-print flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm text-slate-500">Invoice</p>
@@ -191,6 +199,25 @@ export default function InvoiceDetailPage() {
           <StatusBadge status={invoice.status} />
           {writable ? <Link className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold" href={`/invoices/${invoice.id}/edit`}>Edit</Link> : null}
           <Button type="button" variant="outline" onClick={() => window.print()}>Print</Button>
+          <Link className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold" href={`/print/invoice/${invoice.id}`}>Template PDF</Link>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              void authedBlob(`/invoices/${invoice.id}/pdf`)
+                .then((blob) => {
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.download = `${invoice.number}.pdf`;
+                  link.click();
+                  URL.revokeObjectURL(url);
+                })
+                .catch((reason: Error) => setError(reason.message))
+            }
+          >
+            PDF
+          </Button>
           {writable ? (
             <Button
               type="button"
@@ -210,6 +237,7 @@ export default function InvoiceDetailPage() {
         </div>
       </div>
       {error ? <div className="no-print"><ErrorNote message={error} /></div> : null}
+      <InvoiceEvents invoiceId={invoice.id} />
       <article className="rounded-2xl border border-slate-200 bg-white p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -252,6 +280,9 @@ export default function InvoiceDetailPage() {
         </table>
         <dl className="ml-auto mt-4 max-w-xs space-y-1 text-sm">
           <div className="flex justify-between"><dt>Taxable</dt><dd>{inr(invoice.amount)}</dd></div>
+          <div className="flex justify-between"><dt>CGST</dt><dd>{inr((invoice.items ?? []).reduce((sum, item) => sum + num(item.cgst_amount), 0))}</dd></div>
+          <div className="flex justify-between"><dt>SGST</dt><dd>{inr((invoice.items ?? []).reduce((sum, item) => sum + num(item.sgst_amount), 0))}</dd></div>
+          <div className="flex justify-between"><dt>IGST</dt><dd>{inr((invoice.items ?? []).reduce((sum, item) => sum + num(item.igst_amount), 0))}</dd></div>
           <div className="flex justify-between"><dt>Tax</dt><dd>{inr(invoice.tax)}</dd></div>
           <div className="flex justify-between"><dt>Discount</dt><dd>{inr(invoice.discount)}</dd></div>
           <div className="flex justify-between text-base font-bold"><dt>Total</dt><dd>{inr(invoice.total)}</dd></div>

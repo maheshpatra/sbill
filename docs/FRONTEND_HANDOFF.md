@@ -306,6 +306,14 @@ Response: `{ supplier, lines: [{ description, quantity, unit_price, line_total }
 
 `{ "locale", "labels": { "invoice", "total", "pay_upi", "reminder", "balance", "thanks" } }`. Public. PDF title, total, and the UPI line use `tenants.locale` (`en` or `bn`).
 
+## Contracts needed from backend (round 2)
+
+The routes in Round 2 contracts are what the dashboard calls. These are the gaps still left:
+
+- `POST /sync/sales` does not accept a client clock or a single `method` field. The client sends `payments[]`. A bill made offline has no invoice number until the result comes back.
+- `POST /public/ledger/:token/upi` does not start a Razorpay order. Online collection on that page still needs `POST /invoices/:id/razorpay`, which reads the tenant secret with the service role.
+- Audio parse and bill-photo OCR stay **503** until `OPENAI_API_KEY` is set. Text parse does not need that key.
+
 ## Round 3
 
 `cursor/billflow-frontend-6380` did not yet contain a "Contracts needed from backend (round 3)" section when this was written. The shapes below follow the contract named in that request. Google sign-in is not part of this API.
@@ -382,7 +390,7 @@ A non-admin receives 403. These routes use the caller's JWT, not the service-rol
 
 Selecting `storage_provider: "cloudinary"` returns **400** `STORAGE_PROVIDER_NOT_CONFIGURED` unless the cloud name, key, and secret are all set. A non-admin `PATCH` is **403**.
 
-Presign still returns `{ provider, url, fields, public_url }` for Cloudinary. The signature is `sha1` of the alphabetically sorted `folder`, `public_id`, and `timestamp` string with the secret appended. That hash is computed in Postgres by `cloudinary_sign`. The secret is encrypted with `extensions.pgp_sym_encrypt` in the locked schema `billflow_private`. Supabase Vault is not used. No API role can read the ciphertext, and no `CLOUDINARY_SECRETS_KEY` is required. Database values override the env fallback. The API secret is never returned by `GET /admin/settings`.
+Presign still returns `{ provider, url, fields, public_url }` for Cloudinary. The signature is `sha1` of the alphabetically sorted `folder`, `public_id`, and `timestamp` string with the secret appended. That hash is computed in Postgres by `cloudinary_sign`. The secret stays in Supabase Vault when that extension is installed, and otherwise in a locked table encrypted with `extensions.pgp_sym_encrypt`. No `CLOUDINARY_SECRETS_KEY` is required. Database values override the env fallback. The API secret is never returned by `GET /admin/settings`.
 
 A PUT upload returns `provider`, `url`, and `headers`. A multipart upload returns `provider`, `url`, and `fields`. Both include `public_url` when the object is public.
 
@@ -428,3 +436,7 @@ These are `invoice_templates`, not the storefront `templates` table.
 PDF layout follows that key. `thermal_58` and `thermal_80` are narrow pages. `bengali` uses Hind Siliguri (`api/assets/fonts/HindSiliguri-Regular.ttf`, SIL Open Font License).
 
 Every `/admin` route, including the reads, checks `is_platform_admin()` and returns **403** `platform admin required` for anyone else. The list and settings reads are security-definer functions that raise the same error, so a direct RPC from a shop owner is refused too. `POST /invoices` accepts `template_key`.
+
+## Contracts needed from backend (round 3)
+
+The dashboard follows the Cloudinary and shop-image contract above. Hosted SQL for `cloudinary_settings` and `shop_images` was not called in this pass.

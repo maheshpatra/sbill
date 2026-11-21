@@ -20,7 +20,7 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
     setError(null);
     setNotice(null);
     if (!configured) {
-      setError("Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to dashboard/.env.local.");
+      setError("Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to dashboard/.env.local.");
       return;
     }
     setPending(true);

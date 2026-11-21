@@ -13,9 +13,11 @@ export interface Me {
     id: string;
     email: string | null;
     name: string | null;
+    avatar_url?: string | null;
     tenant_id: string | null;
     role: Role | null;
   } | null;
+  is_super_admin?: boolean;
   memberships: Array<{
     id: string;
     role: Role;
@@ -43,6 +45,8 @@ export interface Tenant {
   upi_vpa: string | null;
   upi_payee_name: string | null;
   currency: string;
+  logo_url?: string | null;
+  default_template?: string | null;
 }
 
 export interface Customer {
@@ -86,6 +90,7 @@ export interface Invoice {
   paid_at: string | null;
   notes: string | null;
   terms: string | null;
+  template_key?: string | null;
   customer_id: string;
   customer?: { id: string; name: string; email: string | null; gstin: string | null } | null;
   items?: InvoiceItem[];

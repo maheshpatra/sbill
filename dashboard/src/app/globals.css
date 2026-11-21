@@ -4,13 +4,76 @@
   --color-navy: #0f172a;
   --color-emerald: #10b981;
   --color-teal: #14b8a6;
-  --font-sans: var(--font-outfit), "Avenir Next", "Segoe UI", sans-serif;
+  --font-sans: var(--font-hind), var(--font-outfit), "Avenir Next", "Segoe UI", sans-serif;
+  --font-heading: var(--font-baloo), var(--font-hind), var(--font-outfit), sans-serif;
 }
 
 body {
   background: #f4f6f5;
   color: #0f172a;
   font-family: var(--font-sans);
+}
+
+.font-heading,
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+}
+
+.font-invoice {
+  font-family: var(--font-tiro), "Tiro Bangla", serif;
+}
+
+.pop-press {
+  transition: transform 180ms cubic-bezier(0.2, 1.4, 0.4, 1), opacity 180ms ease;
+}
+
+.pop-press:active {
+  transform: scale(0.96);
+}
+
+.pop-sheet {
+  animation: pop-in 280ms cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+
+.saved-ring {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: draw-ring 400ms ease forwards;
+}
+
+.saved-mark {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: draw-mark 320ms 280ms ease forwards;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes draw-ring {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes draw-mark {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pop-press,
+  .pop-sheet,
+  .saved-ring,
+  .saved-mark {
+    animation: none;
+    transition: none;
+    stroke-dashoffset: 0;
+  }
+  .pop-press:active {
+    transform: none;
+  }
 }
 
 :focus-visible {

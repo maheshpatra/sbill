@@ -1,84 +1,130 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { priceInvoice } from "@billflow/gst";
+import { LanguageSwitch } from "@/i18n/provider";
+import { FeatureBanner } from "@/components/feature-gate";
 import { authed } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { rememberedPayMethod, rememberPayMethod, type PayMethod } from "@/lib/cash";
-import { featureOn, useEntitlements } from "@/lib/entitlements";
-import { OnlineActions, PaymentLinkPanel, openTenantCheckout, type RazorpayLinkStart, type RazorpayStart } from "@/components/online-panel";
+import { listQueued, queueSale, type OfflineLine, type QueuedSale } from "@/lib/offline-queue";
 import { inr, num } from "@/lib/money";
-import { CashPanel, PayMethodTabs } from "@/components/cash-panel";
-import { FeatureBanner } from "@/components/feature-gate";
-import { Button, inputClass } from "@/components/ui";
+import { saleFromCart, syncQueuedSales } from "@/lib/sync-sales";
+import { SavedCheck } from "@/components/saved-check";
 
-interface Product {
+interface Tile {
   id: string;
   name: string;
-  sku: string | null;
-  barcode: string | null;
-  hsn_sac: string | null;
-  unit: string;
+  unit?: string;
   price: number | string;
   gst_rate: number | string;
+  category_id?: string | null;
 }
 
-interface CartLine {
-  key: string;
-  product_id?: string;
-  description: string;
-  quantity: number;
-  unit_price: number;
-  gst_rate: number;
-  hsn_sac?: string;
-  unit?: string;
-  discount: number;
+interface TileCategory {
+  id: string;
+  name: string;
+  tiles?: Tile[];
 }
 
-const STORAGE = "billflow-pos-cart";
+interface TilePayload {
+  categories?: TileCategory[];
+  uncategorized?: Tile[];
+  favourites?: Tile[];
+}
 
-export default function PosPage() {
+function flattenTiles(page: TilePayload): Tile[] {
+  const rows: Tile[] = [];
+  for (const category of page.categories ?? []) {
+    for (const tile of category.tiles ?? []) rows.push({ ...tile, category_id: tile.category_id ?? category.id });
+  }
+  for (const tile of page.uncategorized ?? []) rows.push({ ...tile, category_id: null });
+  if (!rows.length) {
+    for (const tile of page.favourites ?? []) rows.push(tile);
+  }
+  return rows;
+}
+
+const CATALOG = "billflow-pos-tiles";
+
+export default function QuickSalePage() {
+  const t = useTranslations("quick");
+  const router = useRouter();
   const { ready, session } = useAuth();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Tile[]>([]);
+  const [categories, setCategories] = useState<TileCategory[]>([]);
+  const [hasLoose, setHasLoose] = useState(false);
   const [query, setQuery] = useState("");
-  const [cart, setCart] = useState<CartLine[]>([]);
-  const { entitlements, showUpgrade } = useEntitlements();
-  const [method, setMethod] = useState<PayMethod>("cash");
-  const [connected, setConnected] = useState<boolean | null>(null);
-  const [link, setLink] = useState<(RazorpayLinkStart & { number: string; total: number }) | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [receipt, setReceipt] = useState<{ number: string; total: number; upi_uri?: string | null; tendered?: number | null; change?: number | null } | null>(null);
-  const [upi, setUpi] = useState<{ payment_id: string; number: string; total: number; upi_uri: string; qr_svg: string } | null>(null);
-  const [utr, setUtr] = useState("");
+  const [chip, setChip] = useState("all");
+  const [cart, setCart] = useState<OfflineLine[]>([]);
+  const [queue, setQueue] = useState<QueuedSale[]>([]);
+  const [voice, setVoice] = useState("");
+  const [method, setMethod] = useState<"cash" | "upi">("cash");
+  const [online, setOnline] = useState(true);
+  const [pending, setPending] = useState(0);
+  const [note, setNote] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<{ number: string; total: number; change?: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
 
   useEffect(() => {
-    const savedMethod = rememberedPayMethod();
-    if (savedMethod) setMethod(savedMethod);
-    const saved = localStorage.getItem(STORAGE);
-    if (saved) setCart(JSON.parse(saved) as CartLine[]);
-  }, []);
+    if (ready && !session) router.replace("/login");
+  }, [ready, session, router]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE, JSON.stringify(cart));
-  }, [cart]);
+    const cached = localStorage.getItem(CATALOG);
+    if (cached) {
+      const parsed = JSON.parse(cached) as TilePayload;
+      if (parsed && !Array.isArray(parsed)) {
+        setCategories(parsed.categories ?? []);
+        setHasLoose(Boolean(parsed.uncategorized?.length));
+        setProducts(flattenTiles(parsed));
+      }
+    }
+    setOnline(navigator.onLine);
+    void refreshPending();
+    function on() {
+      setOnline(true);
+      void syncQueuedSales().then(async (result) => {
+        await refreshPending();
+        if (result.error === "missing") setNote(t("syncWaiting"));
+      });
+    }
+    function off() {
+      setOnline(false);
+    }
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, [t]);
 
   useEffect(() => {
     if (!session) return;
-    void authed<{ data: Product[] }>("/products").then((page) => setProducts(page.data)).catch((reason: Error) => setMessage(reason.message));
-    void authed<{ connected: boolean }>("/settings/razorpay").then((row) => setConnected(row.connected)).catch(() => setConnected(false));
+    void authed<TilePayload>("/pos/tiles")
+      .then((page) => {
+        const tiles = flattenTiles(page);
+        setCategories(page.categories ?? []);
+        setHasLoose(Boolean(page.uncategorized?.length));
+        if (tiles.length) setProducts(tiles);
+        localStorage.setItem(CATALOG, JSON.stringify(page));
+      })
+      .catch(() => undefined);
   }, [session]);
 
-  useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "/" && document.activeElement?.tagName !== "INPUT") {
-        event.preventDefault();
-        document.getElementById("pos-search")?.focus();
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return products.filter((product) => {
+      if (chip === "none" && product.category_id) return false;
+      if (chip !== "all" && chip !== "none" && product.category_id !== chip) return false;
+      if (!q) return true;
+      return product.name.toLowerCase().includes(q);
+    });
+  }, [products, query, chip]);
 
   const preview = useMemo(() => {
     if (!cart.length) return null;
@@ -88,234 +134,237 @@ export default function PosPage() {
     );
   }, [cart]);
 
-  const matches = products.filter((product) => {
-    const hay = `${product.name} ${product.sku ?? ""} ${product.barcode ?? ""}`.toLowerCase();
-    return hay.includes(query.toLowerCase());
-  });
+  const count = cart.reduce((sum, line) => sum + line.quantity, 0);
 
-  function add(product: Product) {
+  function add(product: Tile) {
+    setReceipt(null);
+    setNote(null);
     setCart((current) => {
-      const existing = current.find((line) => line.product_id === product.id);
-      if (existing) return current.map((line) => (line.product_id === product.id ? { ...line, quantity: line.quantity + 1 } : line));
-      return [...current, {
-        key: product.id,
-        product_id: product.id,
-        description: product.name,
-        quantity: 1,
-        unit_price: num(product.price),
-        gst_rate: num(product.gst_rate),
-        hsn_sac: product.hsn_sac ?? undefined,
-        unit: product.unit,
-        discount: 0,
-      }];
+      const found = current.find((line) => line.product_id === product.id);
+      if (found) return current.map((line) => (line.product_id === product.id ? { ...line, quantity: line.quantity + 1 } : line));
+      return [
+        ...current,
+        {
+          product_id: /^[0-9a-f-]{36}$/i.test(product.id) ? product.id : undefined,
+          description: product.name,
+          quantity: 1,
+          unit_price: num(product.price),
+          gst_rate: num(product.gst_rate),
+          unit: product.unit,
+          discount: 0,
+        },
+      ];
     });
-    setQuery("");
   }
 
-  async function checkout(cash?: { tendered: number; changeGiven: number }, onlineMode?: "checkout" | "link") {
-    if (!preview) return;
-    setMessage(null);
+  async function refreshPending() {
+    const rows = await listQueued();
+    setQueue(rows);
+    setPending(rows.filter((row) => row.status === "pending").length);
+  }
+
+  async function collect() {
+    if (!preview || !cart.length) return;
+    setBusy(true);
+    setNote(null);
+    const total = num(preview.total);
+    const sale = saleFromCart({ method, tendered: total, changeGiven: 0, lines: cart });
+    const live = typeof navigator === "undefined" ? online : navigator.onLine;
     try {
-      const result = await authed<{ number: string; total: number; payment_id?: string; payment_status?: string; upi_uri?: string | null; qr_svg?: string | null; amount_tendered?: number | null; change_given?: number | null; razorpay?: RazorpayStart }>("/pos/checkout", {
+      if (!live) {
+        setOnline(false);
+        await queueSale(sale);
+        await refreshPending();
+        setCart([]);
+        setNote(t("queued"));
+        return;
+      }
+      const result = await authed<{ number: string; total: number; change_given?: number }>("/pos/checkout", {
         method: "POST",
         body: JSON.stringify({
           walk_in_name: "Walk-in",
-          method: method === "online" ? "razorpay" : method,
-          online_mode: onlineMode,
-          tendered: cash?.tendered,
-          change_given: cash?.changeGiven,
-          lines: cart.map((line) => ({
-            product_id: line.product_id,
-            description: line.description,
-            quantity: line.quantity,
-            unit_price: line.unit_price,
-            gst_rate: line.gst_rate,
-            hsn_sac: line.hsn_sac,
-            unit: line.unit,
-            discount: line.discount,
-          })),
+          method,
+          tendered: total,
+          change_given: 0,
+          lines: cart,
         }),
       });
       setCart([]);
-      rememberPayMethod(method);
-      if (result.razorpay?.mode === "checkout" && result.payment_id) {
-        const paid = await openTenantCheckout(result.razorpay);
-        await authed(`/payments/${result.payment_id}/razorpay/verify`, {
-          method: "POST",
-          body: JSON.stringify({ order_id: paid.razorpay_order_id, razorpay_payment_id: paid.razorpay_payment_id, signature: paid.razorpay_signature }),
-        });
-        setReceipt({ number: result.number, total: num(result.total) });
-        return;
-      }
-      if (result.razorpay?.mode === "link") {
-        setLink({ ...result.razorpay, number: result.number, total: num(result.total) });
-        return;
-      }
-      if (method === "upi" && result.qr_svg && result.payment_id && result.upi_uri) {
-        setUpi({ payment_id: result.payment_id, number: result.number, total: num(result.total), upi_uri: result.upi_uri, qr_svg: result.qr_svg });
-      } else {
-        setReceipt({
-          number: result.number,
-          total: num(result.total),
-          upi_uri: result.upi_uri,
-          tendered: result.amount_tendered,
-          change: result.change_given,
-        });
-      }
-    } catch (reason) {
-      setMessage(reason instanceof Error ? reason.message : "Checkout failed");
+      setReceipt({ number: result.number, total: num(result.total), change: result.change_given });
+      setCelebrating(true);
+    } catch {
+      await queueSale(sale);
+      await refreshPending();
+      setCart([]);
+      setNote(t("queued"));
+    } finally {
+      setBusy(false);
     }
   }
 
-  async function confirmPos() {
-    if (!upi) return;
+  const chips = [
+    { id: "all", label: t("all") },
+    ...categories.map((category) => ({ id: category.id, label: category.name })),
+    ...(hasLoose ? [{ id: "none", label: t("uncategorized") }] : []),
+  ];
+
+  function chooseChip(id: string) {
+    setChip(id);
+    if (id === "all" || id === "none" || !navigator.onLine) return;
+    void authed<TilePayload>(`/pos/tiles?category_id=${id}`)
+      .then((page) => {
+        const tiles = flattenTiles(page);
+        if (!tiles.length) return;
+        setProducts((current) => {
+          const rest = current.filter((tile) => tile.category_id !== id);
+          return [...rest, ...tiles];
+        });
+      })
+      .catch(() => undefined);
+  }
+
+  async function parseVoice() {
+    if (!voice.trim()) return;
+    setNote(null);
     try {
-      await authed(`/payments/${upi.payment_id}/confirm`, {
+      const parsed = await authed<{ lines: Array<{ description: string; quantity: number; unit_price: number | null; product_id: string | null; unit?: string }> }>("/voice/parse", {
         method: "POST",
-        body: JSON.stringify(utr ? { utr } : {}),
+        body: JSON.stringify({ text: voice.trim(), locale: document.documentElement.lang === "bn" ? "bn" : "en" }),
       });
-      setReceipt({ number: upi.number, total: upi.total, upi_uri: upi.upi_uri });
-      setUpi(null);
-      setUtr("");
-      window.setTimeout(() => window.print(), 50);
+      parsed.lines.forEach((line) => {
+        const product = products.find((item) => item.id === line.product_id) ?? products.find((item) => item.name.toLowerCase() === line.description.toLowerCase());
+        add({
+          id: line.product_id || product?.id || line.description,
+          name: line.description,
+          price: line.unit_price ?? product?.price ?? 0,
+          gst_rate: product?.gst_rate ?? 0,
+          unit: line.unit || product?.unit,
+          category_id: product?.category_id,
+        });
+      });
+      setVoice("");
     } catch (reason) {
-      setMessage(reason instanceof Error ? reason.message : "Payment was not confirmed");
+      const message = reason instanceof Error ? reason.message : "";
+      setNote(/not configured|503/i.test(message) ? t("notSetUp") : message);
     }
   }
-
-  async function cancelPos() {
-    if (!upi) return;
-    try {
-      await authed(`/payments/${upi.payment_id}/void`, { method: "POST" });
-      setUpi(null);
-      setUtr("");
-      setMessage("UPI payment cancelled. The invoice stays unpaid.");
-    } catch (reason) {
-      setMessage(reason instanceof Error ? reason.message : "Could not cancel the QR");
-    }
-  }
-
-  if (!ready) return <p className="p-6">Loading…</p>;
-  if (!session) return <p className="p-6">Sign in to use the counter. <Link href="/login" className="underline">Sign in</Link></p>;
 
   return (
-    <main className="min-h-screen bg-[#f4f6f5] p-4 text-navy">
-      <FeatureBanner feature="pos" label="The counter" />
-      <header className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Counter</h1>
-        <div className="flex gap-3 text-sm">
-          <Link href="/pos/settings" className="underline">Receipt settings</Link>
-          <Link href="/" className="underline">Back to books</Link>
+    <main className="flex min-h-screen flex-col bg-[#f4f6f5] text-navy">
+      {celebrating ? <SavedCheck label={t("receipt")} onDone={() => setCelebrating(false)} /> : null}
+      <header className="flex items-center justify-between gap-3 px-4 py-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-teal">{online ? t("online") : t("offline")}</p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <LanguageSwitch />
+          <Link href="/" className="rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-semibold">
+            {t("back")}
+          </Link>
         </div>
       </header>
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <section>
-          <input
-            id="pos-search"
-            className={`${inputClass} h-14 text-lg`}
-            placeholder="Search or scan a barcode, then Enter"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && matches[0]) add(matches[0]);
-            }}
-          />
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {matches.slice(0, 12).map((product) => (
-              <li key={product.id}>
-                <button type="button" className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left" onClick={() => add(product)}>
-                  <span className="font-semibold">{product.name}</span>
-                  <span className="mt-1 block text-sm text-slate-500">{inr(product.price)} · GST {num(product.gst_rate)}%</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <aside className="rounded-2xl border border-slate-200 bg-white p-4">
-          <h2 className="font-semibold">Cart</h2>
-          {cart.length === 0 ? <p className="mt-3 text-sm text-slate-500">Empty. Press / to search.</p> : (
-            <ul className="mt-3 space-y-2 text-sm">
-              {cart.map((line) => (
-                <li key={line.key} className="flex items-center justify-between gap-2">
-                  <span>{line.description}</span>
-                  <input className="w-16 rounded-lg border px-2 py-1" type="number" min={1} value={line.quantity} onChange={(event) => setCart((current) => current.map((item) => item.key === line.key ? { ...item, quantity: Number(event.target.value) } : item))} />
-                  <span>{inr(line.unit_price * line.quantity)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {preview ? <p className="mt-4 text-lg font-bold">Total {inr(preview.total)} · tax {inr(preview.tax)}</p> : null}
-          <div className="mt-3">
-            <PayMethodTabs
-              method={method}
-              onlineLocked={Boolean(entitlements) && !featureOn(entitlements, "online_payments")}
-              onLocked={() => showUpgrade("online_payments")}
-              onChange={(next) => {
-                if (upi) void cancelPos();
-                if (link) void authed(`/payments/${link.payment_id}/void`, { method: "POST" }).then(() => setLink(null));
-                setMethod(next);
-                rememberPayMethod(next);
-              }}
-            />
-          </div>
-          {method === "online" && preview ? (
-            <>
-              <OnlineActions connected={connected} onCheckout={() => void checkout(undefined, "checkout")} onLink={() => void checkout(undefined, "link")} />
-              {link ? (
-                <PaymentLinkPanel
-                  start={link}
-                  onPaid={() => {
-                    setReceipt({ number: link.number, total: link.total });
-                    setLink(null);
-                  }}
-                  onFailed={(text) => {
-                    setMessage(text);
-                    setLink(null);
-                  }}
-                  onCancel={() => void authed(`/payments/${link.payment_id}/void`, { method: "POST" }).then(() => setLink(null))}
-                />
-              ) : null}
-            </>
-          ) : method === "cash" && preview ? (
-            <div className="mt-3">
-              <CashPanel due={num(preview.total)} allowPartial={false} onConfirm={(cash) => void checkout(cash)} />
-            </div>
-          ) : (
-            <Button type="button" className="mt-4 w-full" disabled={!cart.length} onClick={() => void checkout()}>
-              {method === "upi" ? "Show UPI QR" : "Mark card paid"}
-            </Button>
-          )}
-          {message ? <p className="mt-3 text-sm text-rose-700">{message}</p> : null}
-          {receipt ? (
-            <div className="receipt mt-4 border-t pt-3 text-sm" style={{ maxWidth: 320 }}>
-              <p className="font-bold">{receipt.number}</p>
-              <p>Total {inr(receipt.total)}</p>
-              {receipt.tendered != null ? <p>Tendered {inr(receipt.tendered)}</p> : null}
-              {receipt.change != null ? <p>Change {inr(receipt.change)}</p> : null}
-              {receipt.upi_uri ? <p className="break-all">UPI {receipt.upi_uri}</p> : null}
-              <button type="button" className="mt-2 underline" onClick={() => window.print()}>Print receipt</button>
-            </div>
-          ) : null}
-        </aside>
+      <div className="flex flex-wrap items-center gap-2 px-4">
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${online ? "bg-emerald/20 text-navy" : "bg-amber-100 text-amber-950"}`}>
+          {online ? t("online") : t("offline")}
+        </span>
+        {pending > 0 ? <span className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white">{t("pending", { count: pending })}</span> : null}
       </div>
-      {upi ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy p-6 text-white">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 text-navy">
-            <p className="text-sm text-slate-500">Show this to the customer</p>
-            <h2 className="text-2xl font-bold">{inr(upi.total)}</h2>
-            <div className="mx-auto mt-4 w-64" dangerouslySetInnerHTML={{ __html: upi.qr_svg }} />
-            <p className="mt-2 break-all text-xs text-slate-500">{upi.upi_uri}</p>
-            <label className="mt-4 block text-sm">UTR, 12 digits, optional
-              <input className={`${inputClass} mt-1`} inputMode="numeric" maxLength={12} value={utr} onChange={(event) => setUtr(event.target.value.replace(/\D/g, ""))} />
-            </label>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button type="button" onClick={() => void confirmPos()}>Payment received</Button>
-              <Button type="button" variant="ghost" onClick={() => void cancelPos()}>Cancel / not received</Button>
-            </div>
-          </div>
-        </div>
+      {queue.length > 0 ? (
+        <ul className="mx-4 mt-3 space-y-2 text-sm">
+          {queue.map((row) => (
+            <li key={row.client_id} className="rounded-2xl bg-white px-3 py-2">
+              <span className="font-semibold">
+                {row.status === "exists" ? t("exists") : row.status === "conflict" ? t("conflict") : t("pendingNumber")}
+              </span>
+              <span className="ml-2 text-slate-600">{row.number || row.reason || row.lines.map((line) => line.description).join(", ")}</span>
+            </li>
+          ))}
+        </ul>
       ) : null}
-      <style>{`@media print { body * { visibility: hidden } .receipt, .receipt * { visibility: visible } .receipt { position: absolute; left: 0; top: 0; width: 80mm } }`}</style>
+      <div className="px-4 pt-3">
+        <FeatureBanner feature="pos" label={t("locked")} />
+        <form
+          className="mb-3 flex gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void parseVoice();
+          }}
+        >
+          <input className="h-12 flex-1 rounded-2xl border border-slate-300 bg-white px-4" placeholder={t("voiceHint")} value={voice} onChange={(event) => setVoice(event.target.value)} />
+          <button type="submit" className="rounded-2xl bg-navy px-4 text-sm font-semibold text-white">{t("voice")}</button>
+        </form>
+        <input
+          id="pos-search"
+          className="h-14 w-full rounded-2xl border border-slate-300 bg-white px-4 text-lg"
+          placeholder={t("search")}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        <div className="mt-3 flex gap-2 overflow-x-auto" role="tablist">
+          {chips.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={chip === item.id}
+              className={`min-h-12 shrink-0 rounded-full px-4 text-sm font-semibold ${chip === item.id ? "bg-navy text-white" : "bg-white text-navy"}`}
+              onClick={() => chooseChip(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="grid flex-1 grid-cols-2 content-start gap-3 px-4 py-4 sm:grid-cols-3 lg:grid-cols-4">
+        {visible.length === 0 ? <p className="col-span-full text-sm text-slate-600">{t("noGoods")}</p> : null}
+        {visible.map((product) => {
+          const qty = cart.find((line) => line.product_id === product.id)?.quantity ?? 0;
+          return (
+            <button
+              key={product.id}
+              type="button"
+              className="flex min-h-32 flex-col items-start justify-between rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm active:bg-emerald/10"
+              onClick={() => add(product)}
+            >
+              <span className="text-lg font-semibold leading-6">{product.name}</span>
+              <span className="mt-3 flex w-full items-center justify-between text-sm">
+                <span className="font-semibold">{inr(product.price)}</span>
+                {qty > 0 ? <span className="rounded-full bg-emerald px-2 py-0.5 font-bold text-navy">{qty}</span> : null}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <footer className="sticky bottom-0 z-20 border-t border-slate-200 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {note ? <p className="mb-2 text-sm text-navy">{note}</p> : null}
+        {receipt ? (
+          <p className="mb-2 text-sm font-semibold">
+            {t("receipt")} {receipt.number} · {inr(receipt.total)}
+          </p>
+        ) : null}
+        <div className="mb-3 grid grid-cols-2 gap-2" role="group" aria-label={t("collect")}>
+          {(["cash", "upi"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              className={`h-12 rounded-2xl text-base font-semibold ${method === value ? "bg-navy text-white" : "border border-slate-300"}`}
+              onClick={() => setMethod(value)}
+            >
+              {value === "cash" ? t("cash") : t("upi")}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          disabled={!cart.length || busy}
+          className="flex h-16 w-full items-center justify-between rounded-3xl bg-emerald px-5 text-lg font-bold text-navy disabled:opacity-40"
+          onClick={() => void collect()}
+        >
+          <span>{cart.length ? t("items", { count }) : t("emptyCart")}</span>
+          <span>{preview ? `${t("collect")} ${inr(preview.total)}` : t("collect")}</span>
+        </button>
+      </footer>
     </main>
   );
 }

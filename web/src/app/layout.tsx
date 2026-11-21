@@ -34,7 +34,13 @@ export const metadata: Metadata = {
     description: landing.subheadline,
     images: ["/brand/og-image.png"],
   },
-  icons: { icon: "/brand/favicon.ico" },
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/brand/favicon.ico" },
+      { url: "/brand/billflow-icon.svg", type: "image/svg+xml" },
+    ],
+  },
   alternates: { canonical: siteUrl },
 };
 

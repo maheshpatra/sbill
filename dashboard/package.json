@@ -7,17 +7,22 @@
     "build": "next build",
     "start": "next start -p 4319 -H 0.0.0.0",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test src/lib/access.test.ts src/lib/money.test.ts src/lib/cash.test.ts"
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test src/lib/access.test.ts src/lib/money.test.ts src/lib/cash.test.ts src/lib/offline-queue.test.ts"
   },
   "dependencies": {
+    "@billflow/api-client": "0.1.0",
     "@billflow/gst": "0.1.0",
-    "@billflow/upi": "0.1.0",
     "@billflow/storefront": "0.1.0",
+    "@billflow/types": "0.1.0",
+    "@billflow/upi": "0.1.0",
+    "@fontsource/noto-sans-bengali": "^5.2.5",
     "@supabase/supabase-js": "^2.49.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
     "next": "15.5.29",
+    "next-intl": "^3.26.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^3.3.0"

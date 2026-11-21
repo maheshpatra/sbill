@@ -1,5 +1,12 @@
+"use client";
+
 import { AuthCard } from "@/components/auth-card";
+import { FirstRun } from "@/components/intro-slides";
 
 export default function SignupPage() {
-  return <AuthCard mode="signup" />;
+  return (
+    <FirstRun>
+      <AuthCard mode="signup" />
+    </FirstRun>
+  );
 }

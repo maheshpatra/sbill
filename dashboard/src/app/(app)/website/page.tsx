@@ -1,8 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type { PublicSite, StoreConfig, StoreSection } from "@billflow/storefront";
-import { authed } from "@/lib/api";
+import { ImageCropper } from "@/components/image-cropper";
+import { ApiError, authed } from "@/lib/api";
+import { publishImage } from "@/lib/brand-assets";
 import { canAdmin } from "@/lib/access";
 import { getSupabase } from "@/lib/supabase";
 import type { Me } from "@/lib/types";
@@ -39,6 +42,7 @@ interface WebsitePayload {
   } | null;
   domains: DomainRow[];
   templates: TemplateRow[];
+  products?: Array<{ id: string; name: string; price: number | string; image_url?: string | null }>;
   root_domain: string;
   cname_target: string;
 }
@@ -57,6 +61,8 @@ export default function WebsitePage() {
   const [tagline, setTagline] = useState("");
   const [about, setAbout] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [heroImage, setHeroImage] = useState("");
+  const [aboutImage, setAboutImage] = useState("");
   const [subdomain, setSubdomain] = useState("");
   const [domain, setDomain] = useState("");
   const [frame, setFrame] = useState<HTMLIFrameElement | null>(null);
@@ -70,6 +76,8 @@ export default function WebsitePage() {
       tagline?: string;
       about?: string;
       logo_url?: string;
+      hero_image_url?: string;
+      about_image_url?: string;
     };
     setTemplateId(next.settings?.template_id || chosen?.id || next.templates[0]?.id || "");
     setColors({
@@ -84,6 +92,8 @@ export default function WebsitePage() {
     setTagline(draft.tagline || "");
     setAbout(draft.about || "");
     setLogoUrl(draft.logo_url || next.tenant.logo_url || "");
+    setHeroImage(draft.hero_image_url || localStorage.getItem("billflow-site-hero") || "");
+    setAboutImage(draft.about_image_url || localStorage.getItem("billflow-site-about") || "");
     setSubdomain(next.tenant.subdomain || next.tenant.slug);
   }
 
@@ -113,11 +123,15 @@ export default function WebsitePage() {
       tagline,
       about,
       logo_url: logoUrl || null,
+      hero_image_url: heroImage || null,
+      about_image_url: aboutImage || null,
       subdomain,
       template: { slug: template?.slug, name: template?.name },
       config: { colors, layout: { hero }, sections },
+      products: payload.products ?? [],
+      bestsellers: (payload.products ?? []).slice(0, 6),
     };
-  }, [payload, templateId, title, tagline, about, logoUrl, subdomain, colors, hero, sections]);
+  }, [payload, templateId, title, tagline, about, logoUrl, heroImage, aboutImage, subdomain, colors, hero, sections]);
 
   useEffect(() => {
     if (!frame || !previewSite) return;
@@ -125,13 +139,35 @@ export default function WebsitePage() {
   }, [frame, previewSite]);
 
   function overrides() {
-    return { title, tagline, about, logo_url: logoUrl, colors, layout: { hero, nav: "top" }, sections };
+    return {
+      title,
+      tagline,
+      about,
+      logo_url: logoUrl,
+      hero_image_url: heroImage.startsWith("https://") ? heroImage : heroImage ? undefined : null,
+      about_image_url: aboutImage.startsWith("https://") ? aboutImage : aboutImage ? undefined : null,
+      colors,
+      layout: { hero, nav: "top" },
+      sections,
+    };
+  }
+
+  async function saveOverrides() {
+    try {
+      await authed("/website/draft", { method: "PUT", body: JSON.stringify({ overrides: overrides(), template_id: templateId }) });
+    } catch (reason) {
+      if (!(reason instanceof ApiError) || reason.status !== 400) throw reason;
+      const { hero_image_url: _hero, about_image_url: _about, ...rest } = overrides();
+      void _hero;
+      void _about;
+      await authed("/website/draft", { method: "PUT", body: JSON.stringify({ overrides: rest, template_id: templateId }) });
+    }
   }
 
   async function saveDraft() {
     setError(null);
     try {
-      await authed("/website/draft", { method: "PUT", body: JSON.stringify({ overrides: overrides(), template_id: templateId }) });
+      await saveOverrides();
       setNotice("Draft saved. The public site is unchanged until you publish.");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not save");
@@ -141,7 +177,7 @@ export default function WebsitePage() {
   async function publish() {
     setError(null);
     try {
-      await authed("/website/draft", { method: "PUT", body: JSON.stringify({ overrides: overrides(), template_id: templateId }) });
+      await saveOverrides();
       await authed("/website/publish", { method: "POST" });
       setNotice("Published. Visitors on your subdomain can see this version.");
       load();
@@ -188,6 +224,7 @@ export default function WebsitePage() {
     }
     const { data } = supabase.storage.from("tenant-assets").getPublicUrl(path);
     setLogoUrl(data.publicUrl);
+    localStorage.setItem("billflow-logo", data.publicUrl);
     setNotice("Logo uploaded. Save the draft to keep it.");
   }
 
@@ -228,9 +265,7 @@ export default function WebsitePage() {
                     onClick={() => void chooseTemplate(template.id)}
                     className={`w-full rounded-2xl border p-3 text-left ${templateId === template.id ? "border-navy" : "border-slate-200"}`}
                   >
-                    {template.preview_image_url ? (
-                      <img src={template.preview_image_url} alt="" className="mb-2 h-24 w-full rounded-xl object-cover" />
-                    ) : null}
+                    <TemplateSlot slug={template.slug} url={template.preview_image_url} />
                     <span className="font-semibold">{template.name}</span>
                     <span className="mt-1 block text-xs text-slate-600">{template.description}</span>
                   </button>
@@ -286,8 +321,34 @@ export default function WebsitePage() {
             <div className="mt-3">
               <Field label="About"><textarea className={inputClass} disabled={!admin} rows={3} value={about} onChange={(event) => setAbout(event.target.value)} /></Field>
             </div>
+            <div className="mt-3 space-y-4">
+              <ImageCropper
+                label="Hero photo"
+                maxEdge={1200}
+                current={heroImage || null}
+                onSave={(dataUrl) => {
+                  void publishImage("site", dataUrl).then((result) => {
+                    setHeroImage(result.url);
+                    if (!result.remote) localStorage.setItem("billflow-site-hero", result.url);
+                    if (result.message) setNotice(result.message);
+                  }).catch((reason: Error) => setError(reason.message));
+                }}
+              />
+              <ImageCropper
+                label="About photo"
+                maxEdge={1200}
+                current={aboutImage || null}
+                onSave={(dataUrl) => {
+                  void publishImage("site", dataUrl).then((result) => {
+                    setAboutImage(result.url);
+                    if (!result.remote) localStorage.setItem("billflow-site-about", result.url);
+                    if (result.message) setNotice(result.message);
+                  }).catch((reason: Error) => setError(reason.message));
+                }}
+              />
+            </div>
             <div className="mt-3">
-              <Field label="Logo" hint="Uploaded to the tenant-assets bucket, under your tenant folder.">
+            <Field label="Logo" hint="Uploaded to the tenant-assets bucket, under your tenant folder.">
                 <input
                   type="file"
                   accept="image/*"
@@ -381,4 +442,40 @@ export default function WebsitePage() {
       </div>
     </div>
   );
+}
+
+const templateArt: Record<string, { src: string; alt: string }> = {
+  classic: {
+    src: "/images/template-classic.webp",
+    alt: "Classic public page: centered name, short tagline, quiet layout.",
+  },
+  modern: {
+    src: "/images/template-modern.webp",
+    alt: "Modern public page: split hero, stronger accent, still a real shop.",
+  },
+  minimal: {
+    src: "/images/template-minimal.webp",
+    alt: "Minimal public page: lots of space, one line of type, no decoration.",
+  },
+};
+
+function TemplateSlot({ slug, url }: { slug: string; url: string | null }) {
+  const art = templateArt[slug];
+  if (art) {
+    return (
+      <Image
+        src={art.src}
+        alt={art.alt}
+        width={1280}
+        height={800}
+        sizes="340px"
+        className="mb-2 block h-auto w-full rounded-xl bg-[#f7f8f6] object-contain"
+        style={{ aspectRatio: "8 / 5" }}
+      />
+    );
+  }
+  if (url && !url.startsWith("/templates/")) {
+    return <img src={url} alt={`${slug} template preview`} width={1280} height={800} className="mb-2 block h-auto w-full rounded-xl bg-[#f7f8f6] object-contain" style={{ aspectRatio: "8 / 5" }} />;
+  }
+  return null;
 }

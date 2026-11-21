@@ -2,10 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { priceInvoice } from "@billflow/gst";
+import { isValidGstin, priceInvoice, supplyFromStates } from "@billflow/gst";
+import { LockedFeature } from "@/components/feature-gate";
 import { authed } from "@/lib/api";
 import { inr } from "@/lib/money";
-import type { Customer, Page } from "@/lib/types";
+import { GST_STATES } from "@/lib/states";
+import type { Customer, Page, Tenant } from "@/lib/types";
+import { defaultTemplate, setInvoiceTemplate, type TemplateKey } from "@/lib/templates";
+import { TemplatePicker } from "./template-picker";
 import { Button, ErrorNote, Field, inputClass } from "./ui";
 
 interface Line {
@@ -27,17 +31,32 @@ export function InvoiceForm() {
   const [due, setDue] = useState("");
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<Line[]>([{ ...blank }]);
+  const [sellerState, setSellerState] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [template, setTemplate] = useState<TemplateKey>("classic");
 
   useEffect(() => {
-    authed<Page<Customer>>("/customers?limit=100")
-      .then((page) => {
+    setTemplate(defaultTemplate());
+  }, []);
+
+  useEffect(() => {
+    Promise.all([authed<Page<Customer>>("/customers?limit=100"), authed<Tenant>("/tenants/current").catch(() => null)])
+      .then(([page, tenant]) => {
         setCustomers(page.data);
         if (page.data[0]) setCustomerId(page.data[0].id);
+        if (tenant?.state_code) {
+          setSellerState(tenant.state_code);
+          setPlace(tenant.state_code);
+        }
       })
       .catch((reason: Error) => setError(reason.message));
   }, []);
+
+  function choosePlace(code: string) {
+    setPlace(code);
+    setSupply(supplyFromStates(sellerState, code));
+  }
 
   const preview = useMemo(() => {
     try {
@@ -69,6 +88,7 @@ export function InvoiceForm() {
           place_of_supply: place || undefined,
           due_at: due ? new Date(due).toISOString() : undefined,
           notes: notes || undefined,
+          template_key: template,
           items: lines.map((line) => ({
             description: line.description,
             quantity: Number(line.quantity),
@@ -78,37 +98,53 @@ export function InvoiceForm() {
           })),
         }),
       });
-      router.push(`/invoices/${created.id}`);
+      setInvoiceTemplate(created.id, template);
+      router.push(`/invoices/${created.id}?saved=1`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not save the invoice");
       setPending(false);
     }
   }
 
+  const selected = customers.find((row) => row.id === customerId);
+  const gstinNote = selected?.gstin
+    ? isValidGstin(selected.gstin)
+      ? `Customer GSTIN ${selected.gstin}`
+      : `Customer GSTIN ${selected.gstin} failed the checksum`
+    : "This customer has no GSTIN yet.";
+
   return (
     <form className="space-y-5" onSubmit={submit}>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Customer">
-          <select className={inputClass} required value={customerId} onChange={(event) => setCustomerId(event.target.value)}>
-            {customers.length === 0 ? <option value="">Add a customer first</option> : null}
-            {customers.map((customer) => (
-              <option key={customer.id} value={customer.id}>{customer.name}</option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Supply">
-          <select className={inputClass} value={supply} onChange={(event) => setSupply(event.target.value as "intra" | "inter")}>
-            <option value="intra">Inside the state (CGST + SGST)</option>
-            <option value="inter">Another state (IGST)</option>
-          </select>
-        </Field>
-        <Field label="Place of supply" hint="State code, for example 27.">
-          <input className={inputClass} value={place} onChange={(event) => setPlace(event.target.value)} />
-        </Field>
-        <Field label="Due date">
-          <input className={inputClass} type="date" value={due} onChange={(event) => setDue(event.target.value)} />
-        </Field>
-      </div>
+      <TemplatePicker value={template} onChange={setTemplate} />
+      <LockedFeature feature="gst_invoices" label="GST invoices">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Customer">
+            <select className={inputClass} required value={customerId} onChange={(event) => setCustomerId(event.target.value)}>
+              {customers.length === 0 ? <option value="">Add a customer first</option> : null}
+              {customers.map((row) => (
+                <option key={row.id} value={row.id}>{row.name}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Due date">
+            <input className={inputClass} type="date" value={due} onChange={(event) => setDue(event.target.value)} />
+          </Field>
+          <Field label="Place of supply" hint={sellerState ? `Your state code is ${sellerState}. ${gstinNote}` : gstinNote}>
+            <select className={inputClass} value={place} onChange={(event) => choosePlace(event.target.value)}>
+              <option value="">Select a state</option>
+              {GST_STATES.map((state) => (
+                <option key={state.code} value={state.code}>{state.code} · {state.name}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Supply">
+            <select className={inputClass} value={supply} onChange={(event) => setSupply(event.target.value as "intra" | "inter")}>
+              <option value="intra">Inside the state (CGST + SGST)</option>
+              <option value="inter">Another state (IGST)</option>
+            </select>
+          </Field>
+        </div>
+      </LockedFeature>
       <div className="space-y-3">
         {lines.map((line, index) => (
           <div key={index} className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-3 sm:grid-cols-5">

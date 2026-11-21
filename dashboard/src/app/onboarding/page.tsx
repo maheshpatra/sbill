@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button, ErrorNote, Field, inputClass, Loading } from "@/components/ui";
+import { callBillflow } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { slugify } from "@/lib/money";
 import { getSupabase } from "@/lib/supabase";
@@ -26,14 +27,19 @@ export default function OnboardingPage() {
     event.preventDefault();
     setPending(true);
     setError(null);
-    const { error: rpcError } = await getSupabase().rpc("create_tenant", { p_name: name.trim(), p_slug: slug });
-    if (rpcError) {
+    try {
+      await callBillflow((client) =>
+        client.POST("/tenants", {
+          body: { name: name.trim(), slug },
+          parseAs: "json",
+        }),
+      );
+      await getSupabase().auth.refreshSession();
+      router.replace("/");
+    } catch (reason) {
       setPending(false);
-      setError(rpcError.message);
-      return;
+      setError(reason instanceof Error ? reason.message : "Could not create the business");
     }
-    await getSupabase().auth.refreshSession();
-    router.replace("/");
   }
 
   return (

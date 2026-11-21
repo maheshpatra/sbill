@@ -2,8 +2,10 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { TemplatePicker } from "@/components/template-picker";
 import { Button, ErrorNote, Field, Loading, inputClass } from "@/components/ui";
 import { authed } from "@/lib/api";
+import { invoiceTemplate, isTemplateKey, persistInvoiceTemplate, type TemplateKey } from "@/lib/templates";
 import type { Invoice } from "@/lib/types";
 
 export default function EditInvoicePage() {
@@ -17,6 +19,7 @@ export default function EditInvoicePage() {
   const [place, setPlace] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [template, setTemplate] = useState<TemplateKey>("classic");
 
   useEffect(() => {
     authed<Invoice>(`/invoices/${params.id}`)
@@ -27,6 +30,7 @@ export default function EditInvoicePage() {
         setDue(row.due_at ? row.due_at.slice(0, 10) : "");
         setDiscount(String(row.discount ?? 0));
         setPlace(row.place_of_supply ?? "");
+        setTemplate(isTemplateKey(row.template_key) ? row.template_key : invoiceTemplate(row.id));
       })
       .catch((reason: Error) => setError(reason.message));
   }, [params.id]);
@@ -46,7 +50,12 @@ export default function EditInvoicePage() {
           due_at: due ? new Date(due).toISOString() : undefined,
         }),
       });
-      router.push(`/invoices/${params.id}`);
+      try {
+        await persistInvoiceTemplate(params.id, template);
+      } catch {
+        // Kept locally when the template column is not live yet.
+      }
+      router.push(`/invoices/${params.id}?saved=1`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not save");
       setPending(false);
@@ -59,6 +68,7 @@ export default function EditInvoicePage() {
   return (
     <form className="mx-auto max-w-xl space-y-4" onSubmit={save}>
       <h1 className="text-2xl font-bold">Edit {invoice.number}</h1>
+      <TemplatePicker value={template} onChange={setTemplate} />
       <p className="text-sm text-slate-600">Line items stay as they were saved. You can still change the note, due date, and discount.</p>
       <Field label="Due date"><input className={inputClass} type="date" value={due} onChange={(event) => setDue(event.target.value)} /></Field>
       <Field label="Place of supply"><input className={inputClass} value={place} onChange={(event) => setPlace(event.target.value)} /></Field>

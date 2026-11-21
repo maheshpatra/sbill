@@ -34,6 +34,7 @@ export default function WhatsappSettingsPage() {
       <h1 className="text-2xl font-bold">WhatsApp</h1>
       <p className="mt-2 text-sm text-slate-600">
         The access token is write-only. Without Meta credentials, Share on WhatsApp opens a wa.me link instead.
+        Sending through the Cloud API needs a server secret. Without it, that send is not available in this environment.
       </p>
       <form
         className="mt-4 space-y-4"

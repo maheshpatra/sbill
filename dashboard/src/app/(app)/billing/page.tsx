@@ -20,9 +20,13 @@ export default function BillingPage() {
 
   function load() {
     setLoading(true);
+    let entitlementError: string | null = null;
     Promise.all([
       authed<{ data: Plan[] }>("/billing/plans"),
-      authed<Entitlements>("/entitlements"),
+      authed<Entitlements>("/entitlements").catch((reason: Error) => {
+        entitlementError = reason.message;
+        return null;
+      }),
       authed<Me>("/auth/me"),
       authed<{ data: PlatformInvoice[] }>("/billing/invoices").catch(() => ({ data: [] as PlatformInvoice[] })),
     ])
@@ -31,6 +35,7 @@ export default function BillingPage() {
         setEntitlements(nextEntitlements);
         setAdmin(canAdmin(me.user?.role));
         setInvoices(invoicePage.data);
+        if (entitlementError) setError(entitlementError);
       })
       .catch((reason: Error) => setError(reason.message))
       .finally(() => setLoading(false));

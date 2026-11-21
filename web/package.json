@@ -7,9 +7,11 @@
     "build": "next build",
     "start": "next start -p 4318 -H 0.0.0.0",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test src/content/landing.test.ts"
   },
   "dependencies": {
+    "@billflow/api-client": "0.1.0",
     "@billflow/host-resolution": "0.1.0",
     "@billflow/upi": "0.1.0",
     "@billflow/storefront": "0.1.0",

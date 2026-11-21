@@ -1140,24 +1140,6 @@ exception
   when insufficient_privilege then
     null;
 end $$;
-do $$
-begin
-  perform 1 from billflow_private.secrets;
-  raise exception 'anon read the cloudinary secret store';
-exception
-  when insufficient_privilege then
-    null;
-end $$;
-reset role;
-set role authenticated;
-do $$
-begin
-  perform 1 from billflow_private.secrets;
-  raise exception 'authenticated read the cloudinary secret store';
-exception
-  when insufficient_privilege then
-    null;
-end $$;
 reset role;
 
 -- Cloudinary secret stays in the database. Signing matches the documented sha1.

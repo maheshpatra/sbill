@@ -1,10 +1,20 @@
 import { Faq } from "@/components/faq";
+import { ImageSlot } from "@/components/image-slot";
 import { Pricing } from "@/components/pricing";
 import { SiteHeader } from "@/components/site-header";
 import { landing } from "@/content/landing";
 import { dashboardLinks } from "@/lib/links";
 
 const featureMarks = ["01", "02", "03", "04", "05", "06", "07"];
+const featureSlots = [
+  { file: "/images/feature-invoices.webp", width: 960, height: 640, label: "An invoice drafted with a customer, line items, and the GST total." },
+  { file: "/images/feature-payments.webp", width: 960, height: 640, label: "The same bill collected by UPI, card, net banking, or cash." },
+  { file: "/images/feature-reminders.webp", width: 960, height: 640, label: "A polite follow-up for an overdue invoice, on a phone." },
+  { file: "/images/feature-recurring.webp", width: 960, height: 640, label: "A monthly or yearly bill that goes out on its own." },
+  { file: "/images/feature-dashboard.webp", width: 960, height: 640, label: "Paid, pending, and overdue amounts on one screen." },
+  { file: "/images/feature-team.webp", width: 960, height: 640, label: "An owner, an accountant, and a staff member, each with different access." },
+  { file: "/images/feature-security.webp", width: 960, height: 640, label: "A vault with ledgers, a shield, and padlocks." },
+];
 
 export default function HomePage() {
   const { signup } = dashboardLinks();
@@ -48,33 +58,14 @@ export default function HomePage() {
               </a>
             </div>
           </div>
-          <aside className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.45)]" aria-label="Sample invoice preview">
-            <div className="flex items-center justify-between rounded-2xl bg-navy px-4 py-3 text-white">
-              <span className="font-semibold">INV-0001</span>
-              <span className="rounded-full bg-emerald px-2 py-1 text-xs font-bold text-navy">GST 18%</span>
-            </div>
-            <dl className="mt-5 space-y-3 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-slate-500">Bookkeeping retainer</dt>
-                <dd className="font-medium">₹20,000</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-slate-500">CGST 9%</dt>
-                <dd>₹1,800</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-slate-500">SGST 9%</dt>
-                <dd>₹1,800</dd>
-              </div>
-              <div className="flex justify-between border-t border-slate-200 pt-3 text-base font-bold text-navy">
-                <dt>Total</dt>
-                <dd>₹23,600</dd>
-              </div>
-            </dl>
-            <p className="mt-5 rounded-2xl bg-emerald/15 px-4 py-3 text-sm font-medium text-navy">
-              Pay by UPI · acme@okhdfcbank
-            </p>
-          </aside>
+          <ImageSlot
+            file="/images/hero-home.webp"
+            width={1440}
+            height={1080}
+            priority
+            label="A small Indian shop counter. Someone sends a GST invoice from a phone while a customer pays by UPI."
+            className="rounded-[28px]"
+          />
         </section>
 
         <section id="features" className="mx-auto max-w-6xl px-4 py-8 sm:px-6" aria-labelledby="features-heading">
@@ -87,6 +78,7 @@ export default function HomePage() {
                 key={feature.title}
                 className={`rounded-3xl border border-slate-200 bg-white p-6 ${index === 0 ? "sm:col-span-2" : ""}`}
               >
+                <ImageSlot file={featureSlots[index].file} width={featureSlots[index].width} height={featureSlots[index].height} label={featureSlots[index].label} className="mb-4 rounded-2xl" />
                 <p className="text-xs font-bold tracking-[0.18em] text-teal">{featureMarks[index]}</p>
                 <h3 className="mt-3 text-xl font-semibold text-navy">{feature.title}</h3>
                 <p className="mt-2 max-w-3xl leading-7 text-slate-700">{feature.body}</p>

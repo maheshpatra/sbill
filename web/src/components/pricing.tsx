@@ -1,13 +1,75 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createBillflowClient } from "@billflow/api-client";
 import { formatInr, pricing, yearlyPrice } from "@/config/pricing";
 import { landing } from "@/content/landing";
 import { dashboardLinks } from "@/lib/links";
 
+interface LivePlan {
+  code: string;
+  name: string;
+  description?: string;
+  price_monthly?: number | string;
+  price_yearly?: number | string;
+  sort_order?: number;
+}
+
+interface CardPlan {
+  id: string;
+  name: string;
+  monthly: number;
+  yearly: number;
+  summary: string;
+  highlighted: boolean;
+}
+
+function fallbackPlans(): CardPlan[] {
+  return pricing.plans.map((plan) => ({
+    id: plan.id,
+    name: plan.name,
+    monthly: plan.monthlyPrice,
+    yearly: yearlyPrice(plan.monthlyPrice),
+    summary: plan.summary,
+    highlighted: plan.highlighted,
+  }));
+}
+
 export function Pricing() {
   const [yearly, setYearly] = useState(false);
+  const [plans, setPlans] = useState<CardPlan[]>(fallbackPlans);
+  const [live, setLive] = useState(false);
   const { signup } = dashboardLinks();
+
+  useEffect(() => {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:4317";
+    const client = createBillflowClient({ baseUrl });
+    void client
+      .GET("/billing/plans", { parseAs: "json" })
+      .then(async (result) => {
+        if (!result.response.ok) return;
+        const body = (result.data ?? (await result.response.json().catch(() => null))) as { data?: LivePlan[] } | null;
+        if (!body?.data?.length) return;
+        const next = [...body.data]
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          .map((plan) => {
+            const monthly = Number(plan.price_monthly ?? 0);
+            const yearlyAmount = Number(plan.price_yearly ?? 0) || yearlyPrice(monthly);
+            const known = pricing.plans.find((row) => row.id === plan.code);
+            return {
+              id: plan.code,
+              name: plan.name,
+              monthly,
+              yearly: yearlyAmount,
+              summary: plan.description || known?.summary || "",
+              highlighted: plan.code === "growth",
+            };
+          });
+        setPlans(next);
+        setLive(true);
+      })
+      .catch(() => undefined);
+  }, []);
 
   return (
     <section id="pricing" className="mx-auto max-w-6xl px-4 py-20 sm:px-6" aria-labelledby="pricing-heading">
@@ -17,6 +79,7 @@ export function Pricing() {
             Pricing
           </h2>
           <p className="mt-3 text-lg text-slate-700">{landing.yearlyNote}</p>
+          <p className="mt-1 text-sm text-slate-500">{live ? "Prices from the live plan catalog. GST extra." : "Listed prices. GST extra."}</p>
         </div>
         <div className="inline-flex rounded-full border border-slate-300 bg-white p-1" role="group" aria-label="Billing period">
           <button
@@ -38,8 +101,8 @@ export function Pricing() {
         </div>
       </div>
       <ul className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {pricing.plans.map((plan) => {
-          const amount = yearly ? yearlyPrice(plan.monthlyPrice) : plan.monthlyPrice;
+        {plans.map((plan) => {
+          const amount = yearly ? plan.yearly : plan.monthly;
           const priceLabel = amount === 0 ? "Free" : formatInr(amount);
           const period = amount === 0 ? "" : yearly ? "/year" : "/month";
           return (

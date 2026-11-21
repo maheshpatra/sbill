@@ -1,15 +1,7 @@
 -- Cloudinary credentials saved by a platform admin.
---
--- Hosted Supabase has supabase_vault, but the postgres role cannot call
--- pgsodium's _crypto_aead_det_encrypt. The previous script hit that error on
--- `revoke all on all tables/functions in schema vault` (vault.create_secret
--- exists, so the old shim was skipped and the revoke still touched Vault).
--- This script does not create, replace, or revoke anything in schema vault.
---
--- The API secret is stored with pgcrypto in schema billflow_private.
--- The encryption key is generated once in billflow_private.crypto_key.
--- No API role can read that schema. cloudinary_sign appends the secret in SQL.
--- Re-running is safe, including after the failed hosted attempt.
+-- The API secret is stored in Supabase Vault when that extension is installed.
+-- Otherwise it is stored with pgcrypto in a locked table. No role can select it.
+-- Signing happens in cloudinary_sign so the secret never returns to the API.
 
 create schema if not exists extensions;
 
@@ -50,51 +42,119 @@ begin
   end if;
 end $$;
 
--- Best-effort repair if the previous script revoked service_role on Vault.
--- Failure is ignored so a pgsodium event trigger cannot stop this script.
 do $$
 begin
-  if to_regnamespace('vault') is null then
-    return;
-  end if;
   begin
-    execute 'grant usage on schema vault to service_role';
-  exception when others then
-    raise notice 'vault usage grant left unchanged: %', sqlerrm;
-  end;
-  begin
-    execute 'grant select, insert, update, delete on all tables in schema vault to service_role';
-  exception when others then
-    raise notice 'vault table grants left unchanged: %', sqlerrm;
-  end;
-  begin
-    execute 'grant execute on all functions in schema vault to service_role';
-  exception when others then
-    raise notice 'vault function grants left unchanged: %', sqlerrm;
+    create extension if not exists supabase_vault;
+  exception
+    when others then
+      raise notice 'supabase_vault is not installed (%). Using a locked pgcrypto store.', sqlerrm;
   end;
 end $$;
 
-create schema if not exists billflow_private;
+create schema if not exists vault;
 
-revoke all on schema billflow_private from public, anon, authenticated, service_role;
+do $$
+begin
+  if exists (
+    select 1 from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'vault' and p.proname = 'create_secret'
+  ) then
+    return;
+  end if;
 
-create table if not exists billflow_private.crypto_key (
-  id integer primary key check (id = 1),
-  key text not null
-);
+  create table if not exists vault.crypto_key (
+    id integer primary key check (id = 1),
+    key text not null
+  );
+  insert into vault.crypto_key (id, key)
+  values (1, encode(extensions.gen_random_bytes(32), 'hex'))
+  on conflict (id) do nothing;
 
-insert into billflow_private.crypto_key (id, key)
-select 1, encode(extensions.gen_random_bytes(32), 'hex')
-where not exists (select 1 from billflow_private.crypto_key where id = 1);
+  create table if not exists vault.secrets (
+    id uuid primary key default gen_random_uuid(),
+    name text,
+    description text,
+    secret_enc bytea not null,
+    updated_at timestamptz not null default now()
+  );
 
-create table if not exists billflow_private.secrets (
-  id uuid primary key default gen_random_uuid(),
-  name text,
-  secret_enc bytea not null,
-  updated_at timestamptz not null default now()
-);
+  execute $fn$
+    create or replace function vault.create_secret(
+      new_secret text,
+      new_name text default null,
+      new_description text default null,
+      new_key_id uuid default null
+    ) returns uuid
+    language plpgsql
+    security definer
+    set search_path = vault, extensions, public
+    as $body$
+    declare
+      new_id uuid;
+      pass text;
+    begin
+      select key into pass from vault.crypto_key where id = 1;
+      insert into vault.secrets (name, description, secret_enc)
+      values (new_name, new_description, extensions.pgp_sym_encrypt(new_secret, pass))
+      returning id into new_id;
+      return new_id;
+    end;
+    $body$
+  $fn$;
 
-revoke all on all tables in schema billflow_private from public, anon, authenticated, service_role;
+  execute $fn$
+    create or replace function vault.update_secret(
+      secret_id uuid,
+      new_secret text default null,
+      new_name text default null,
+      new_description text default null,
+      new_key_id uuid default null
+    ) returns void
+    language plpgsql
+    security definer
+    set search_path = vault, extensions, public
+    as $body$
+    declare
+      pass text;
+    begin
+      select key into pass from vault.crypto_key where id = 1;
+      update vault.secrets
+      set secret_enc = extensions.pgp_sym_encrypt(coalesce(new_secret, ''), pass),
+          name = coalesce(new_name, name),
+          description = coalesce(new_description, description),
+          updated_at = now()
+      where id = secret_id;
+    end;
+    $body$
+  $fn$;
+
+  execute $fn$
+    create or replace function vault.read_secret(secret_id uuid)
+    returns text
+    language plpgsql
+    security definer
+    set search_path = vault, extensions, public
+    as $body$
+    declare
+      pass text;
+      raw bytea;
+    begin
+      select key into pass from vault.crypto_key where id = 1;
+      select secret_enc into raw from vault.secrets where id = secret_id;
+      if raw is null then
+        return null;
+      end if;
+      return extensions.pgp_sym_decrypt(raw, pass);
+    end;
+    $body$
+  $fn$;
+end $$;
+
+revoke all on schema vault from public, anon, authenticated;
+revoke all on all tables in schema vault from public, anon, authenticated, service_role;
+revoke all on all functions in schema vault from public, anon, authenticated, service_role;
 
 create table if not exists public.cloudinary_settings (
   id integer primary key check (id = 1),
@@ -103,12 +163,6 @@ create table if not exists public.cloudinary_settings (
   vault_secret_id uuid,
   updated_at timestamptz not null default now()
 );
-
-alter table public.cloudinary_settings
-  add column if not exists cloud_name text,
-  add column if not exists api_key text,
-  add column if not exists vault_secret_id uuid,
-  add column if not exists updated_at timestamptz not null default now();
 
 insert into public.cloudinary_settings (id) values (1) on conflict (id) do nothing;
 
@@ -119,24 +173,25 @@ create or replace function public.cloudinary_read_secret()
 returns text
 language plpgsql
 security definer
-set search_path = public, billflow_private, extensions
+set search_path = public, vault, extensions
 as $$
 declare
   secret_id uuid;
-  pass text;
-  raw bytea;
   secret text;
 begin
   select vault_secret_id into secret_id from public.cloudinary_settings where id = 1;
   if secret_id is null then
     return null;
   end if;
-  select key into pass from billflow_private.crypto_key where id = 1;
-  select secret_enc into raw from billflow_private.secrets where id = secret_id;
-  if raw is null or pass is null then
-    return null;
+  if exists (
+    select 1 from information_schema.views
+    where table_schema = 'vault' and table_name = 'decrypted_secrets'
+  ) then
+    execute 'select decrypted_secret from vault.decrypted_secrets where id = $1'
+      into secret using secret_id;
+  else
+    execute 'select vault.read_secret($1)' into secret using secret_id;
   end if;
-  secret := extensions.pgp_sym_decrypt(raw, pass);
   if secret is null or secret = '' then
     return null;
   end if;
@@ -194,12 +249,11 @@ create or replace function public.admin_set_cloudinary(p_patch jsonb)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, billflow_private, extensions
+set search_path = public, vault, extensions
 as $$
 declare
   row public.cloudinary_settings;
   secret text;
-  pass text;
   new_id uuid;
 begin
   perform public.assert_platform_admin();
@@ -208,10 +262,6 @@ begin
   end if;
   insert into public.cloudinary_settings (id) values (1) on conflict (id) do nothing;
   select * into row from public.cloudinary_settings where id = 1 for update;
-  select key into pass from billflow_private.crypto_key where id = 1;
-  if pass is null then
-    raise exception 'cloudinary secret key is missing' using errcode = '22023';
-  end if;
 
   if p_patch ? 'cloud_name' then
     row.cloud_name := nullif(btrim(coalesce(p_patch ->> 'cloud_name', '')), '');
@@ -221,25 +271,15 @@ begin
   end if;
   if p_patch ? 'api_secret' and jsonb_typeof(p_patch -> 'api_secret') = 'string' and length(btrim(p_patch ->> 'api_secret')) > 0 then
     secret := p_patch ->> 'api_secret';
-    if row.vault_secret_id is null or not exists (
-      select 1 from billflow_private.secrets s where s.id = row.vault_secret_id
-    ) then
-      insert into billflow_private.secrets (name, secret_enc)
-      values ('billflow_cloudinary_api_secret', extensions.pgp_sym_encrypt(secret, pass))
-      returning id into new_id;
+    if row.vault_secret_id is null then
+      new_id := vault.create_secret(secret, 'billflow_cloudinary_api_secret', 'Cloudinary API secret');
       row.vault_secret_id := new_id;
     else
-      update billflow_private.secrets
-      set secret_enc = extensions.pgp_sym_encrypt(secret, pass),
-          updated_at = now()
-      where id = row.vault_secret_id;
+      perform vault.update_secret(row.vault_secret_id, secret);
     end if;
   elsif p_patch ? 'api_secret' and jsonb_typeof(p_patch -> 'api_secret') = 'null' then
     if row.vault_secret_id is not null then
-      update billflow_private.secrets
-      set secret_enc = extensions.pgp_sym_encrypt('', pass),
-          updated_at = now()
-      where id = row.vault_secret_id;
+      perform vault.update_secret(row.vault_secret_id, '');
     end if;
     row.vault_secret_id := null;
   end if;

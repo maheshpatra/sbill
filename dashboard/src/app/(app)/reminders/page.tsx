@@ -72,6 +72,7 @@ export default function RemindersPage() {
         </Button>
       </div>
       <p className="text-sm text-slate-600">Offsets are days from the due date. The same invoice, offset, and channel is sent only once. Customers can opt out.</p>
+      <ReminderPlan onError={setError} />
       {error ? <ErrorNote message={error} /> : null}
       <Card>
         <ul className="space-y-3">
@@ -112,4 +113,50 @@ export default function RemindersPage() {
   function update(index: number, patch: Partial<Schedule>) {
     setRows((current) => current.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)));
   }
+}
+
+function ReminderPlan({ onError }: { onError: (message: string) => void }) {
+  const [before, setBefore] = useState("3");
+  const [onDue, setOnDue] = useState(true);
+  const [after, setAfter] = useState("3, 7");
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    void authed<{ before_days: number[]; on_due: boolean; after_days: number[]; template?: string }>("/reminders/plan")
+      .then((plan) => {
+        setBefore((plan.before_days ?? []).join(", "));
+        setOnDue(Boolean(plan.on_due));
+        setAfter((plan.after_days ?? []).join(", "));
+      })
+      .catch((reason: Error) => onError(reason.message));
+  }, [onError]);
+
+  function days(value: string) {
+    return value.split(",").map((part) => Number(part.trim())).filter((part) => Number.isFinite(part) && part > 0);
+  }
+
+  return (
+    <Card>
+      <h2 className="font-semibold">WhatsApp plan</h2>
+      <p className="mt-1 text-sm text-slate-600">Days before the due date, on the day, and after.</p>
+      <form
+        className="mt-3 grid gap-3 sm:grid-cols-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void authed("/reminders/plan", {
+            method: "PUT",
+            body: JSON.stringify({ channel: "whatsapp", before_days: days(before), on_due: onDue, after_days: days(after) }),
+          })
+            .then(() => setNotice("Reminder plan saved."))
+            .catch((reason: Error) => onError(reason.message));
+        }}
+      >
+        <label className="text-sm">Before<input className={inputClass} value={before} onChange={(event) => setBefore(event.target.value)} /></label>
+        <label className="text-sm">After<input className={inputClass} value={after} onChange={(event) => setAfter(event.target.value)} /></label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={onDue} onChange={(event) => setOnDue(event.target.checked)} /> On the due date</label>
+        <Button type="submit">Save plan</Button>
+      </form>
+      {notice ? <p className="mt-2 text-sm">{notice}</p> : null}
+    </Card>
+  );
 }

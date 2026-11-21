@@ -119,7 +119,7 @@ export default function PaymentSettingsPage() {
         <h2 className="font-semibold">Razorpay for your customers</h2>
         <p className="mt-1 text-sm text-slate-600">
           These keys collect money into your Razorpay account. They are separate from the keys billflow uses to bill you for a plan. Secrets are encrypted and are not shown again.
-          Online collection is on the Growth plan.
+          Saving keys, testing the connection, and taking an online payment need a server secret. Without it, those actions are not available in this environment.
         </p>
         <form
           className="mt-4 grid gap-4"

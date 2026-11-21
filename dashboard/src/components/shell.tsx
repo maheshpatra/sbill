@@ -3,27 +3,34 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, CreditCard, FileText, Globe, LayoutDashboard, Lock, LogOut, Menu, MessageCircle, Settings, ShoppingBag, Users, Wallet } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Bell, CreditCard, FileText, Globe, LayoutDashboard, Lock, LogOut, MessageCircle, Package, Receipt, Settings, ShoppingBag, Users, Wallet } from "lucide-react";
+import { FirstRun } from "./intro-slides";
+import { MobileNav } from "./mobile-nav";
+import { LanguageSwitch } from "@/i18n/provider";
 import { featureOn, useEntitlements } from "@/lib/entitlements";
 import { useAuth } from "@/lib/auth";
 import { authed } from "@/lib/api";
 import { canWrite, roleLabel } from "@/lib/access";
+import { readAvatar } from "@/lib/brand-assets";
 import { getSupabase } from "@/lib/supabase";
 import type { Me } from "@/lib/types";
 import { ErrorNote, Loading } from "./ui";
 
 const nav = [
-  { href: "/", label: "Overview", icon: LayoutDashboard, feature: "" },
-  { href: "/invoices", label: "Invoices", icon: FileText, feature: "" },
-  { href: "/payments", label: "Payments", icon: Wallet, feature: "" },
-  { href: "/customers", label: "Customers", icon: Users, feature: "" },
-  { href: "/billing", label: "Plans", icon: CreditCard, feature: "" },
-  { href: "/website", label: "Website", icon: Globe, feature: "" },
-  { href: "/pos", label: "Counter", icon: ShoppingBag, feature: "pos" },
-  { href: "/reminders", label: "Reminders", icon: Bell, feature: "auto_reminders" },
-  { href: "/whatsapp", label: "WhatsApp", icon: MessageCircle, feature: "whatsapp_click_to_chat" },
-  { href: "/settings", label: "Settings", icon: Settings, feature: "" },
-];
+  { href: "/", label: "today", icon: LayoutDashboard, feature: "" },
+  { href: "/pos", label: "newBill", icon: ShoppingBag, feature: "pos" },
+  { href: "/invoices", label: "bills", icon: FileText, feature: "" },
+  { href: "/payments", label: "received", icon: Wallet, feature: "" },
+  { href: "/customers", label: "customers", icon: Users, feature: "" },
+  { href: "/products", label: "goods", icon: Package, feature: "product_catalog" },
+  { href: "/purchases", label: "purchases", icon: Receipt, feature: "" },
+  { href: "/billing", label: "plans", icon: CreditCard, feature: "" },
+  { href: "/website", label: "site", icon: Globe, feature: "" },
+  { href: "/reminders", label: "reminders", icon: Bell, feature: "auto_reminders" },
+  { href: "/whatsapp", label: "whatsapp", icon: MessageCircle, feature: "whatsapp_click_to_chat" },
+  { href: "/settings", label: "settings", icon: Settings, feature: "" },
+] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { ready, configured, session } = useAuth();
@@ -31,8 +38,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [me, setMe] = useState<Me | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
   const { entitlements } = useEntitlements();
+  const t = useTranslations("shell");
 
   useEffect(() => {
     if (!ready) return;
@@ -75,13 +82,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             key={item.href}
             href={item.href}
-            onClick={() => setOpen(false)}
             className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ${
               active ? "bg-white/10 text-white" : "text-slate-300 hover:bg-white/5 hover:text-white"
             }`}
           >
             <Icon size={16} aria-hidden />
-            {item.label}
+            {t(item.label)}
             {item.feature && entitlements && !featureOn(entitlements, item.feature) ? <Lock size={12} aria-label="Locked" /> : null}
           </Link>
         );
@@ -90,6 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
+    <FirstRun>
     <div className="min-h-screen bg-[#f4f6f5] md:grid md:grid-cols-[240px_1fr]">
       <aside className="no-print hidden bg-navy text-white md:flex md:flex-col md:px-4 md:py-6">
         <Link href="/" className="px-2">
@@ -101,30 +108,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-slate-300 hover:text-white"
           onClick={() => void getSupabase().auth.signOut().then(() => router.replace("/login"))}
         >
-          <LogOut size={16} aria-hidden /> Sign out
+          <LogOut size={16} aria-hidden /> {t("signOut")}
         </button>
       </aside>
       <div className="min-w-0">
         <header className="no-print flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:px-8">
           <div className="flex items-center gap-3">
-            <button type="button" className="rounded-md p-2 md:hidden" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen((value) => !value)}>
-              <Menu size={18} />
-            </button>
             <div>
               <p className="text-sm font-semibold text-navy">{tenantName}</p>
               <p className="text-xs text-slate-500">{roleLabel(role)}{canWrite(role) ? "" : " · read only"}</p>
             </div>
           </div>
-          <p className="hidden text-sm text-slate-500 sm:block">{me.user?.email}</p>
+          <div className="flex items-center gap-3">
+            <AvatarMark src={me.user?.avatar_url} />
+            <LanguageSwitch />
+            <p className="hidden text-sm text-slate-500 sm:block">{me.user?.email}</p>
+          </div>
         </header>
-        {open ? <div className="no-print bg-navy px-4 py-4 md:hidden">{links}</div> : null}
         {!canWrite(role) ? (
           <p className="no-print bg-amber-50 px-4 py-2 text-sm text-amber-950 md:px-8">
-            You can look through this business. Creating and editing is limited to owners, admins, and billing.
+            {t("readOnly")}
           </p>
         ) : null}
-        <main className="px-4 py-6 md:px-8">{children}</main>
+        <main className="px-4 py-6 pb-[calc(8rem+env(safe-area-inset-bottom))] md:px-8 md:pb-6 print:pb-6">{children}</main>
+        <MobileNav />
       </div>
     </div>
+    </FirstRun>
   );
+}
+
+function AvatarMark({ src }: { src?: string | null }) {
+  const [local, setLocal] = useState<string | null>(null);
+  useEffect(() => {
+    setLocal(readAvatar());
+  }, []);
+  const image = src || local;
+  if (!image) return null;
+  return <img src={image} alt="" className="h-8 w-8 rounded-full object-cover" />;
 }
